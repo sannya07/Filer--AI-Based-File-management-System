@@ -14,6 +14,7 @@ const fileRoutes = require('./routes/fileRoutes');
 const aiRoutes = require('./routes/aiRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
 const searchRoutes = require('./routes/searchRoutes');
+const shareRoutes = require('./routes/shareRoutes');
 
 // Health Check Endpoint
 app.get('/api/health', (req, res) => {
@@ -30,6 +31,7 @@ app.use('/api/files', fileRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/search', searchRoutes);
+app.use('/api/share', shareRoutes);
 
 // 404 Route Handler
 app.use((req, res, next) => {

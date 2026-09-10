@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { formatFileSize } from '../../utils/hashUtil';
+import ShareModal from '../ShareModal/ShareModal';
 import {
   FileText,
   FileCode,
@@ -12,6 +13,7 @@ import {
   Clock,
   HardDrive,
   FolderInput,
+  Share2,
   Check,
   X
 } from 'lucide-react';
@@ -66,6 +68,7 @@ const FileCard = ({ file, onDelete, onMove, categoryTree = [] }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [isMoving, setIsMoving] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [selectedTargetCat, setSelectedTargetCat] = useState(file.category || 'Others');
   const [selectedTargetSubcat, setSelectedTargetSubcat] = useState(file.subcategory || '');
 
@@ -274,6 +277,17 @@ const FileCard = ({ file, onDelete, onMove, categoryTree = [] }) => {
             <Download className="h-4 w-4" />
           </a>
 
+          {/* Share Link Button */}
+          <button
+            id={`btn-share-file-${file._id}`}
+            type="button"
+            onClick={() => setIsShareModalOpen(true)}
+            title="Share file"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 transition hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-slate-800 dark:hover:text-indigo-400"
+          >
+            <Share2 className="h-4 w-4" />
+          </button>
+
           {/* Move Category Button */}
           {onMove && (
             <button
@@ -315,6 +329,13 @@ const FileCard = ({ file, onDelete, onMove, categoryTree = [] }) => {
           </button>
         )}
       </div>
+
+      {/* Share Modal */}
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        file={file}
+      />
     </div>
   );
 };

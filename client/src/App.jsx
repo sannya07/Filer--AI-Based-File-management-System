@@ -5,6 +5,7 @@ import ProtectedRoute from './routes/ProtectedRoute';
 import Login from './pages/Login/Login';
 import Signup from './pages/Signup/Signup';
 import Dashboard from './pages/Dashboard/Dashboard';
+import SharedFile from './pages/SharedFile/SharedFile';
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
           {/* Public Routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/share/:token" element={<SharedFile />} />
 
           {/* Protected Routes */}
           <Route element={<ProtectedRoute />}>

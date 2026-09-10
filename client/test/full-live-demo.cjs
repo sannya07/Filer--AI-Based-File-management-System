@@ -264,8 +264,61 @@ async function runFullLiveDemo() {
     await page.click('#btn-clear-search');
     await page.waitForTimeout(1500);
 
+    // -----------------------------------------------------------------
+    // PHASE 6: Sharing & Public Access Control
+    // -----------------------------------------------------------------
+    console.log('\n🔹 PHASE 6: Secure File Sharing & Public Access Control');
+    console.log('   Opening Share Modal from File Card...');
+    await page.click('button[title="Share file"]');
+    await page.waitForSelector('#share-modal-container');
+    await page.waitForTimeout(1000);
+
+    console.log('   Configuring link: 7 Days Expiry, View Only...');
+    await page.selectOption('#select-share-expiry', '7');
+    await page.click('#btn-perm-viewonly');
+    await page.waitForTimeout(600);
+
+    console.log('   Generating secure public link...');
+    await page.click('#btn-generate-share-link');
+    await page.waitForSelector('#input-share-url', { timeout: 10000 });
+
+    const shareUrl = await page.inputValue('#input-share-url');
+    console.log(`   ✨ Generated Public Share URL: ${shareUrl}`);
+
+    console.log('   Testing 1-click "Copy Link"...');
+    await page.click('#btn-copy-share-link');
+    await page.waitForTimeout(1000);
+
+    // Open public incognito recipient window
+    console.log('   Opening unauthenticated public recipient window...');
+    const publicContext = await browser.newContext({
+      viewport: { width: 1100, height: 800 }
+    });
+    const publicPage = await publicContext.newPage();
+
+    console.log(`   Navigating public recipient to ${shareUrl}...`);
+    await publicPage.goto(shareUrl, { waitUntil: 'networkidle' });
+    await publicPage.waitForSelector('#public-shared-card');
+    console.log('   ✅ Public Document Page rendered without requiring login!');
+    await publicPage.waitForTimeout(3000);
+
+    // Test Revocation
+    console.log('   Testing instant link revocation by owner...');
+    await page.click('#btn-revoke-share-link');
+    await page.waitForTimeout(1000);
+    console.log('   ✅ Link revoked by owner');
+
+    console.log('   Recipient reloading revoked link...');
+    await publicPage.reload({ waitUntil: 'networkidle' });
+    await publicPage.waitForSelector('#share-error-card');
+    console.log('   🔒 SUCCESS: Access Denied card displayed to recipient!');
+    await publicPage.waitForTimeout(2500);
+
+    await publicContext.close();
+    await page.bringToFront();
+
     console.log('\n======================================================');
-    console.log('🎉 ALL PHASES (1, 2, 3, 4, 5) VERIFIED LIVE ON GOOGLE CHROME!');
+    console.log('🎉 ALL PHASES (1, 2, 3, 4, 5, 6) VERIFIED LIVE ON GOOGLE CHROME!');
     console.log('   Holding browser window open for 10 seconds for review...');
     console.log('======================================================\n');
     await page.waitForTimeout(10000);
