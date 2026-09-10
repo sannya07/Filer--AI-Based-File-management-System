@@ -230,19 +230,42 @@ async function runFullLiveDemo() {
     }
 
     // -----------------------------------------------------------------
-    // PHASE 4 (Part 4): Search & Overview Inspection
+    // PHASE 5: Trie Prefix Autocomplete & Search (DSA AR-2)
     // -----------------------------------------------------------------
-    console.log('\n🔹 Live Search Query Testing:');
-    console.log('   Searching for "Security" in search bar...');
-    await page.fill('#dashboard-search-input', 'Security');
+    console.log('\n🔹 PHASE 5: Trie Prefix Autocomplete & Search (O(L) DSA)');
+    console.log('   Typing prefix "re" into search bar...');
+    await page.fill('#dashboard-search-input', 're');
+
+    console.log('   Waiting for Trie Autocomplete dropdown...');
+    await page.waitForSelector('#trie-autocomplete-dropdown', { timeout: 8000 });
+    console.log('   ✨ SUCCESS: In-memory Trie Autocomplete Dropdown rendered!');
     await page.waitForTimeout(2000);
 
-    console.log('   Clearing search query...');
-    await page.fill('#dashboard-search-input', '');
+    console.log('   Navigating Trie suggestions via keyboard (ArrowDown + Enter)...');
+    await page.press('#dashboard-search-input', 'ArrowDown');
+    await page.waitForTimeout(600);
+    await page.press('#dashboard-search-input', 'ArrowDown');
+    await page.waitForTimeout(600);
+    await page.press('#dashboard-search-input', 'Enter');
     await page.waitForTimeout(2000);
+
+    console.log('   Testing Clear Search button (X)...');
+    await page.click('#btn-clear-search');
+    await page.waitForTimeout(1500);
+
+    console.log('   Testing Sub-word / Tag search: typing "deep"...');
+    await page.fill('#dashboard-search-input', 'deep');
+    await page.waitForSelector('#trie-autocomplete-dropdown', { timeout: 6000 });
+    await page.waitForTimeout(1500);
+    await page.click('#trie-suggestion-0');
+    await page.waitForTimeout(2000);
+
+    console.log('   Clearing search to restore all documents...');
+    await page.click('#btn-clear-search');
+    await page.waitForTimeout(1500);
 
     console.log('\n======================================================');
-    console.log('🎉 ALL PHASES (1, 2, 3, 4) VERIFIED LIVE ON GOOGLE CHROME!');
+    console.log('🎉 ALL PHASES (1, 2, 3, 4, 5) VERIFIED LIVE ON GOOGLE CHROME!');
     console.log('   Holding browser window open for 10 seconds for review...');
     console.log('======================================================\n');
     await page.waitForTimeout(10000);

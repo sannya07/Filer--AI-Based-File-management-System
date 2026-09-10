@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import Navbar from '../../components/Navbar/Navbar';
 import FileCard from '../../components/FileCard/FileCard';
 import CategoryTree from '../../components/CategoryTree/CategoryTree';
+import SearchBar from '../../components/SearchBar/SearchBar';
 import UploadModal from '../../components/UploadModal/UploadModal';
 import fileService from '../../services/fileService';
 import categoryService from '../../services/categoryService';
@@ -336,20 +337,24 @@ const Dashboard = () => {
                 )}
               </div>
 
-              {/* Search Bar */}
-              <div className="relative w-full sm:w-64">
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
-                  <Search className="h-4 w-4" />
-                </div>
-                <input
-                  type="text"
-                  id="dashboard-search-input"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search in category..."
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 py-2 pl-9 pr-3 text-xs text-gray-900 transition focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-800 dark:bg-slate-800/60 dark:text-white"
-                />
-              </div>
+              {/* Trie Autocomplete Search Bar */}
+              <SearchBar
+                searchQuery={searchQuery}
+                onSearchChange={(val) => setSearchQuery(val)}
+                onSelectSuggestion={(item) => {
+                  if (item.type === 'category') {
+                    setSelectedCategory(item.displayText || item.text);
+                    setSelectedSubcategory('');
+                    setSearchQuery('');
+                  } else if (item.type === 'subcategory') {
+                    setSelectedSubcategory(item.displayText || item.text);
+                    setSearchQuery('');
+                  } else {
+                    setSearchQuery(item.fileName || item.displayText || item.text);
+                  }
+                }}
+                placeholder="Search files, tags, categories..."
+              />
             </div>
 
             {/* Active Category Header Bar */}
