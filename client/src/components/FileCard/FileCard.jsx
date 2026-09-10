@@ -96,11 +96,18 @@ const FileCard = ({ file, onDelete }) => {
             {icon}
           </div>
 
-          <span
-            className={`inline-flex items-center rounded-lg px-2.5 py-1 text-[11px] font-semibold ${badge}`}
-          >
-            {file.category || 'Others'}
-          </span>
+          <div className="flex items-center gap-1.5">
+            {file.confidence && (
+              <span className="inline-flex items-center rounded-md bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
+                {file.confidence}
+              </span>
+            )}
+            <span
+              className={`inline-flex items-center rounded-lg px-2.5 py-1 text-[11px] font-semibold ${badge}`}
+            >
+              {file.category || 'Others'}
+            </span>
+          </div>
         </div>
 
         {/* File Name */}
@@ -110,6 +117,13 @@ const FileCard = ({ file, onDelete }) => {
         >
           {file.fileName}
         </h3>
+
+        {/* AI Summary Snippet if present */}
+        {file.summary && (
+          <p className="mt-1.5 line-clamp-2 text-xs text-gray-600 dark:text-gray-300">
+            {file.summary}
+          </p>
+        )}
 
         {/* Metadata stats */}
         <div className="mt-2 flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">

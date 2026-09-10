@@ -11,6 +11,7 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 // Import Routes
 const authRoutes = require('./routes/authRoutes');
 const fileRoutes = require('./routes/fileRoutes');
+const aiRoutes = require('./routes/aiRoutes');
 
 // Health Check Endpoint
 app.get('/api/health', (req, res) => {
@@ -24,6 +25,7 @@ app.get('/api/health', (req, res) => {
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/files', fileRoutes);
+app.use('/api/ai', aiRoutes);
 
 // 404 Route Handler
 app.use((req, res, next) => {

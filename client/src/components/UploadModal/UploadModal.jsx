@@ -1,16 +1,19 @@
 import React, { useState, useRef } from 'react';
 import { computeFileHash, formatFileSize } from '../../utils/hashUtil';
 import fileService from '../../services/fileService';
+import aiService from '../../services/aiService';
+import AIReviewCard from '../AIReviewCard/AIReviewCard';
 import config from '../../config/app.config';
 import {
   X,
   UploadCloud,
   FileText,
   AlertTriangle,
-  CheckCircle2,
   AlertCircle,
   Loader2,
-  FolderTree
+  FolderTree,
+  Sparkles,
+  ArrowRight
 } from 'lucide-react';
 
 const UploadModal = ({ isOpen, onClose, onUploadSuccess }) => {
@@ -21,6 +24,8 @@ const UploadModal = ({ isOpen, onClose, onUploadSuccess }) => {
   const [duplicateData, setDuplicateData] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [aiAnalysisData, setAiAnalysisData] = useState(null);
   const [error, setError] = useState('');
 
   const fileInputRef = useRef(null);
@@ -35,6 +40,8 @@ const UploadModal = ({ isOpen, onClose, onUploadSuccess }) => {
     setDuplicateData(null);
     setUploadProgress(0);
     setIsUploading(false);
+    setIsAnalyzing(false);
+    setAiAnalysisData(null);
     setError('');
   };
 
@@ -48,6 +55,7 @@ const UploadModal = ({ isOpen, onClose, onUploadSuccess }) => {
 
     setError('');
     setDuplicateData(null);
+    setAiAnalysisData(null);
 
     // Validate size (50MB)
     if (selectedFile.size > config.maxUploadSizeBytes) {
@@ -70,7 +78,7 @@ const UploadModal = ({ isOpen, onClose, onUploadSuccess }) => {
       }
     } catch (err) {
       console.error('Hash/Duplicate check error:', err);
-      setError('Failed to analyze file integrity. You can still try uploading.');
+      setError('Failed to analyze file integrity. You can still proceed.');
     } finally {
       setIsHashing(false);
     }
@@ -83,11 +91,28 @@ const UploadModal = ({ isOpen, onClose, onUploadSuccess }) => {
     }
   };
 
-  const handleUpload = async () => {
-    if (!file) {
-      setError('Please select a file first.');
-      return;
+  // Step 3: Trigger AI Analysis
+  const handleAnalyzeWithAI = async () => {
+    if (!file) return;
+
+    try {
+      setIsAnalyzing(true);
+      setError('');
+      const data = await aiService.analyzeFile(file);
+      if (data.success) {
+        setAiAnalysisData(data);
+      }
+    } catch (err) {
+      console.error('AI Analysis Error:', err);
+      setError('AI analysis failed. You can proceed with standard upload.');
+    } finally {
+      setIsAnalyzing(false);
     }
+  };
+
+  // Step 4: Final upload after AI review or direct upload
+  const handleExecuteUpload = async (reviewedMetadata = {}) => {
+    if (!file) return;
 
     try {
       setIsUploading(true);
@@ -95,8 +120,14 @@ const UploadModal = ({ isOpen, onClose, onUploadSuccess }) => {
 
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('category', category);
       formData.append('hash', hash);
+      formData.append('category', reviewedMetadata.category || category);
+
+      if (reviewedMetadata.summary) formData.append('summary', reviewedMetadata.summary);
+      if (reviewedMetadata.description) formData.append('description', reviewedMetadata.description);
+      if (reviewedMetadata.tags) formData.append('tags', JSON.stringify(reviewedMetadata.tags));
+      if (reviewedMetadata.confidence) formData.append('confidence', reviewedMetadata.confidence);
+      if (reviewedMetadata.reasoning) formData.append('reasoning', reviewedMetadata.reasoning);
 
       const response = await fileService.uploadFile(formData, (progressEvent) => {
         if (progressEvent.total) {
@@ -119,6 +150,19 @@ const UploadModal = ({ isOpen, onClose, onUploadSuccess }) => {
     }
   };
 
+  // If AI review card is active, render the Review Screen Modal
+  if (aiAnalysisData && file) {
+    return (
+      <AIReviewCard
+        file={file}
+        aiData={aiAnalysisData}
+        onAccept={(metadata) => handleExecuteUpload(metadata)}
+        onReject={() => setAiAnalysisData(null)}
+        isUploading={isUploading}
+      />
+    );
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
       <div
@@ -136,7 +180,7 @@ const UploadModal = ({ isOpen, onClose, onUploadSuccess }) => {
                 Upload Document
               </h2>
               <p className="text-xs text-gray-500">
-                Secure cloud storage with duplicate detection
+                AI understanding, classification, and duplicate detection
               </p>
             </div>
           </div>
@@ -159,7 +203,7 @@ const UploadModal = ({ isOpen, onClose, onUploadSuccess }) => {
             </div>
           )}
 
-          {/* Duplicate Detection Warning Modal / Banner */}
+          {/* Duplicate Detection Warning Banner */}
           {duplicateData && (
             <div
               id="duplicate-warning-banner"
@@ -227,7 +271,7 @@ const UploadModal = ({ isOpen, onClose, onUploadSuccess }) => {
                   </div>
                 </div>
 
-                {!isUploading && (
+                {!isUploading && !isAnalyzing && (
                   <button
                     onClick={() => {
                       setFile(null);
@@ -247,18 +291,29 @@ const UploadModal = ({ isOpen, onClose, onUploadSuccess }) => {
                   <span>Calculating SHA-256 hash in browser memory...</span>
                 </div>
               )}
+
+              {/* AI Analyzing Status */}
+              {isAnalyzing && (
+                <div
+                  id="ai-analyzing-indicator"
+                  className="mt-3 flex items-center gap-2 rounded-xl bg-indigo-50 p-2.5 text-xs font-semibold text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300"
+                >
+                  <Sparkles className="h-4 w-4 animate-spin text-indigo-600" />
+                  <span>Extracting text & analyzing document with AI...</span>
+                </div>
+              )}
             </div>
           )}
 
-          {/* Category Selection */}
-          {file && (
+          {/* Quick Category Selection (for direct upload) */}
+          {file && !isAnalyzing && (
             <div className="mt-5">
               <label
                 htmlFor="upload-category-select"
                 className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 dark:text-gray-300"
               >
                 <FolderTree className="h-3.5 w-3.5 text-indigo-500" />
-                Select Category
+                Default Category (or let AI suggest)
               </label>
               <select
                 id="upload-category-select"
@@ -292,52 +347,50 @@ const UploadModal = ({ isOpen, onClose, onUploadSuccess }) => {
           )}
 
           {/* Actions */}
-          <div className="mt-6 flex items-center justify-end gap-3 border-t border-gray-100 pt-4 dark:border-slate-800">
+          <div className="mt-6 flex items-center justify-between border-t border-gray-100 pt-4 dark:border-slate-800">
             <button
               id="btn-cancel-upload"
               type="button"
               onClick={handleClose}
-              disabled={isUploading}
+              disabled={isUploading || isAnalyzing}
               className="rounded-xl border border-gray-200 px-4 py-2.5 text-xs font-semibold text-gray-600 transition hover:bg-gray-50 disabled:opacity-50 dark:border-slate-700 dark:text-gray-300 dark:hover:bg-slate-800"
             >
               Cancel
             </button>
 
-            {duplicateData ? (
+            <div className="flex items-center gap-2">
+              {/* AI Understanding Flow Trigger (Primary Action) */}
               <button
-                id="btn-upload-anyway"
+                id="btn-analyze-with-ai"
                 type="button"
-                onClick={handleUpload}
-                disabled={isUploading || isHashing}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-amber-600 px-4 py-2.5 text-xs font-semibold text-white shadow-md shadow-amber-600/25 transition hover:bg-amber-500 disabled:opacity-50"
+                onClick={handleAnalyzeWithAI}
+                disabled={!file || isUploading || isHashing || isAnalyzing}
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-700 px-5 py-2.5 text-xs font-semibold text-white shadow-md shadow-indigo-600/25 transition hover:from-indigo-500 hover:to-purple-600 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {isUploading ? (
+                {isAnalyzing ? (
                   <>
                     <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    <span>Uploading...</span>
+                    <span>Analyzing...</span>
                   </>
                 ) : (
-                  <span>Upload Anyway</span>
+                  <>
+                    <Sparkles className="h-4 w-4" />
+                    <span>Analyze with AI & Review</span>
+                  </>
                 )}
               </button>
-            ) : (
+
+              {/* Direct upload bypass */}
               <button
                 id="btn-confirm-upload"
                 type="button"
-                onClick={handleUpload}
-                disabled={!file || isUploading || isHashing}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 px-5 py-2.5 text-xs font-semibold text-white shadow-md shadow-indigo-600/25 transition hover:from-indigo-500 hover:to-indigo-600 disabled:cursor-not-allowed disabled:opacity-50"
+                onClick={() => handleExecuteUpload()}
+                disabled={!file || isUploading || isHashing || isAnalyzing}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-xs font-semibold text-gray-700 transition hover:bg-gray-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-gray-200 dark:hover:bg-slate-700"
               >
-                {isUploading ? (
-                  <>
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    <span>Uploading...</span>
-                  </>
-                ) : (
-                  <span>Upload to Cloud</span>
-                )}
+                <span>Direct Upload</span>
               </button>
-            )}
+            </div>
           </div>
         </div>
       </div>

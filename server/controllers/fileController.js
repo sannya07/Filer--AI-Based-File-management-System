@@ -63,7 +63,7 @@ const uploadFile = async (req, res, next) => {
     }
 
     const { originalname, buffer, size, mimetype } = req.file;
-    const { category, subcategory, tags } = req.body;
+    const { category, subcategory, tags, summary, description, confidence, reasoning } = req.body;
 
     // 1. Calculate SHA-256 hash for integrity and duplicate tracking
     const hash = generateHash(buffer);
@@ -98,9 +98,13 @@ const uploadFile = async (req, res, next) => {
       fileType: mimetype || ext.replace('.', ''),
       fileSize: size,
       hash,
+      summary: summary || '',
+      description: description || '',
+      tags: parsedTags,
       category: category || 'Others',
       subcategory: subcategory || '',
-      tags: parsedTags,
+      confidence: confidence || '',
+      reasoning: reasoning || '',
       cloudinaryUrl: cloudinaryResult.secureUrl,
       publicId: cloudinaryResult.publicId
     });
