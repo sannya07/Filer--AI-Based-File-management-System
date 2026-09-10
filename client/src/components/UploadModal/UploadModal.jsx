@@ -122,6 +122,7 @@ const UploadModal = ({ isOpen, onClose, onUploadSuccess }) => {
       formData.append('file', file);
       formData.append('hash', hash);
       formData.append('category', reviewedMetadata.category || category);
+      if (reviewedMetadata.subcategory) formData.append('subcategory', reviewedMetadata.subcategory);
 
       if (reviewedMetadata.summary) formData.append('summary', reviewedMetadata.summary);
       if (reviewedMetadata.description) formData.append('description', reviewedMetadata.description);

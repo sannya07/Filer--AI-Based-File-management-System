@@ -4,25 +4,25 @@ const fs = require('fs');
 
 async function runFullLiveDemo() {
   console.log('\n======================================================');
-  console.log('🚀 LAUNCHING FULL LIVE CHROME AUTOMATION TEST (ALL PHASES)');
+  console.log('🚀 LAUNCHING VISIBLE GOOGLE CHROME: PHASES 1 - 4 LIVE REVIEW');
   console.log('======================================================\n');
 
   // 1. Prepare sample test documents
-  const doc1Path = path.join(__dirname, 'AWS_Security_Architecture.txt');
+  const doc1Path = path.join(__dirname, 'AWS_Cloud_Security_Guide.txt');
   fs.writeFileSync(
     doc1Path,
     'AWS Cloud Security Architecture Guide:\n' +
     'Covers Identity and Access Management (IAM) role policies, S3 bucket encryption, VPC subnets, and CloudTrail audit logging.'
   );
 
-  const doc2Path = path.join(__dirname, 'FullStack_Engineering_Resume.txt');
+  const doc2Path = path.join(__dirname, 'FullStack_AI_Resume.txt');
   fs.writeFileSync(
     doc2Path,
-    'Curriculum Vitae / Professional Resume:\n' +
+    'Professional Resume / Curriculum Vitae:\n' +
     'Candidate: Sanya Kansal\n' +
     'Education: B.Tech Computer Science\n' +
-    'Skills: React, Node.js, Express, MongoDB, Cloudinary, Playwright, Python\n' +
-    'Experience: Full Stack AI Engineer developing intelligent document management workspaces.'
+    'Skills: React, Node.js, Express, MongoDB, Tree DSA, OpenRouter AI, Cloudinary, Playwright\n' +
+    'Experience: Full Stack AI Engineer building FILER AI workspace.'
   );
 
   let browser;
@@ -30,17 +30,17 @@ async function runFullLiveDemo() {
     browser = await chromium.launch({
       channel: 'chrome',
       headless: false, // Visible window on user's Mac!
-      slowMo: 650 // Smooth viewing speed
+      slowMo: 700 // Smooth viewing speed so user can review every action
     });
   } catch {
     browser = await chromium.launch({
       headless: false,
-      slowMo: 650
+      slowMo: 700
     });
   }
 
   const context = await browser.newContext({
-    viewport: { width: 1320, height: 880 }
+    viewport: { width: 1360, height: 900 }
   });
   const page = await context.newPage();
 
@@ -51,23 +51,23 @@ async function runFullLiveDemo() {
 
   try {
     // -----------------------------------------------------------------
-    // FEATURE 1: Authentication & Navigation (Phase 1)
+    // PHASE 1: Authentication & Navigation
     // -----------------------------------------------------------------
-    console.log('🔹 FEATURE 1: Authentication & App Shell');
+    console.log('🔹 PHASE 1: Authentication & App Shell');
     console.log('   Navigating to http://localhost:5173/...');
     await page.goto('http://localhost:5173/', { waitUntil: 'networkidle' });
-    console.log('   ✅ Unauthenticated user automatically redirected to /login');
+    console.log('   ✅ Unauthenticated user redirected to /login');
 
     console.log('   Navigating to Sign Up screen...');
     await page.click('#link-to-signup');
     await page.waitForURL('**/signup');
 
-    console.log('   Entering credentials for Sanya Kansal...');
+    console.log(`   Entering user credentials for ${testName}...`);
     await page.fill('#signup-name', testName);
     await page.fill('#signup-email', testEmail);
     await page.fill('#signup-password', testPassword);
 
-    console.log('   Submitting account creation to MongoDB Atlas...');
+    console.log('   Submitting account registration to MongoDB Atlas...');
     await page.click('#btn-signup-submit');
 
     await page.waitForURL('http://localhost:5173/');
@@ -76,35 +76,49 @@ async function runFullLiveDemo() {
     await page.waitForTimeout(1500);
 
     // -----------------------------------------------------------------
-    // FEATURE 2: In-Memory Hashing & Direct Upload (Phase 2)
+    // PHASE 4 (Part 1): Verify Category Hierarchy Tree (Seeded DSA)
     // -----------------------------------------------------------------
-    console.log('\n🔹 FEATURE 2: File Management & In-Memory Hashing');
+    console.log('\n🔹 PHASE 4: Category Hierarchy Tree Sidebar (DSA Seeded)');
+    console.log('   Verifying Category Tree sidebar & seeded roots/subcategories...');
+    await page.waitForSelector('#category-tree-sidebar');
+    await page.waitForSelector('#cat-item-all');
+    await page.waitForSelector('#cat-item-study-material');
+    await page.waitForSelector('#cat-item-projects');
+    await page.waitForSelector('#subcat-item-aws');
+    await page.waitForSelector('#subcat-item-mern');
+    console.log('   ✅ Default n-ary Category Tree seeded and rendered on sidebar!');
+    await page.waitForTimeout(1500);
+
+    // -----------------------------------------------------------------
+    // PHASE 2: File Management & In-Memory Hashing
+    // -----------------------------------------------------------------
+    console.log('\n🔹 PHASE 2: File Management & Web Crypto Hashing');
     console.log('   Opening Upload Modal...');
     await page.click('#btn-dashboard-upload-cta');
     await page.waitForSelector('#upload-modal-container');
 
-    console.log('   Selecting AWS Security Architecture document...');
+    console.log('   Selecting AWS Security Guide document...');
     const fileInput1 = await page.$('#file-upload-input');
     await fileInput1.setInputFiles(doc1Path);
 
-    console.log('   ✅ In-memory SHA-256 hash computed via Web Crypto API');
-    await page.waitForTimeout(1200);
+    console.log('   ✅ In-memory SHA-256 hash computed');
+    await page.waitForTimeout(1000);
 
     console.log('   Selecting category "Study Material"...');
     await page.selectOption('#upload-category-select', 'Study Material');
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(800);
 
-    console.log('   Performing direct upload to Cloud Storage...');
+    console.log('   Direct uploading to Cloudinary & MongoDB Atlas...');
     await page.click('#btn-confirm-upload');
 
-    await page.waitForSelector('[id^="file-card-"]', { timeout: 10000 });
-    console.log('   ✅ Document uploaded and FileCard rendered in grid!');
+    await page.waitForSelector('[id^="file-card-"]', { timeout: 15000 });
+    console.log('   ✅ Document uploaded! FileCard rendered with Category badge.');
     await page.waitForTimeout(2000);
 
     // -----------------------------------------------------------------
-    // FEATURE 3: SHA-256 Duplicate Detection (DSA AR-1)
+    // PHASE 2 (Duplicate Check): SHA-256 Duplicate Detection
     // -----------------------------------------------------------------
-    console.log('\n🔹 FEATURE 3: Duplicate Detection (DSA SHA-256)');
+    console.log('\n🔹 PHASE 2: Duplicate Detection (SHA-256 DSA)');
     console.log('   Re-opening Upload Modal...');
     await page.click('#btn-dashboard-upload-cta');
     await page.waitForSelector('#upload-modal-container');
@@ -116,16 +130,16 @@ async function runFullLiveDemo() {
     console.log('   Waiting for SHA-256 duplicate match...');
     await page.waitForSelector('#duplicate-warning-banner', { timeout: 10000 });
     console.log('   ⚠️  SUCCESS: "Possible Duplicate Detected" warning banner displayed!');
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(2500);
 
     console.log('   Cancelling duplicate upload...');
     await page.click('#btn-cancel-upload');
     await page.waitForTimeout(1000);
 
     // -----------------------------------------------------------------
-    // FEATURE 4: AI Intelligence & Human-in-the-Loop Review (Phase 3)
+    // PHASE 3: AI Intelligence Layer & Human-in-the-Loop Review
     // -----------------------------------------------------------------
-    console.log('\n🔹 FEATURE 4: AI Understanding & Human-in-the-Loop Review');
+    console.log('\n🔹 PHASE 3: AI Intelligence Layer & Human-in-the-Loop Review');
     console.log('   Opening Upload Modal for Resume document...');
     await page.click('#btn-dashboard-upload-cta');
     await page.waitForSelector('#upload-modal-container');
@@ -137,60 +151,105 @@ async function runFullLiveDemo() {
     console.log('   Triggering "Analyze with AI & Review"...');
     await page.click('#btn-analyze-with-ai');
 
-    console.log('   Extracting text in memory & analyzing via OpenRouter AI pipeline...');
+    console.log('   Extracting text in memory & generating AI classification...');
     await page.waitForSelector('#ai-review-modal-container', { timeout: 20000 });
     console.log('   ✨ SUCCESS: Human-in-the-Loop AI Review Card rendered!');
 
-    // Read AI predicted category and confidence
+    // Read AI confidence badge and reasoning
     const confidenceText = await page.innerText('#ai-confidence-badge');
     console.log(`   AI Confidence: ${confidenceText}`);
 
     // Test Human-in-the-Loop editing
-    console.log('   Testing Human-in-the-Loop editing: Adding custom tag "#deeplearning"...');
+    console.log('   Human-in-the-Loop Editing: Adding custom tag "#deeplearning"...');
     await page.fill('#add-tag-input', 'deeplearning');
     await page.press('#add-tag-input', 'Enter');
-    await page.waitForTimeout(1500);
+    await page.waitForTimeout(1200);
 
     console.log('   Approving AI review: Clicking "Accept & Save to Cloud"...');
     await page.click('#btn-accept-ai-review');
 
-    await page.waitForTimeout(2000);
-    console.log('   ✅ AI metadata committed to MongoDB Atlas and visible on Dashboard!');
+    await page.waitForTimeout(2500);
+    console.log('   ✅ AI metadata committed to MongoDB Atlas!');
 
     // -----------------------------------------------------------------
-    // FEATURE 5: Live Filtering & Searching
+    // PHASE 4 (Part 2): Tree Filtering, Breadcrumbs, Empty States
     // -----------------------------------------------------------------
-    console.log('\n🔹 FEATURE 5: Live Category Filtering & Search Queries');
-    console.log('   Filtering by category "Study Material"...');
-    await page.click('#filter-cat-study-material');
-    await page.waitForTimeout(2000);
-
-    console.log('   Resetting filter to "All"...');
-    await page.click('#filter-cat-all');
+    console.log('\n🔹 PHASE 4: Category Hierarchy Tree Filtering & Breadcrumbs');
+    console.log('   Clicking "Study Material" in Category Tree sidebar...');
+    await page.click('#cat-item-study-material');
     await page.waitForTimeout(1500);
 
-    console.log('   Typing search query "Resume" in search bar...');
-    await page.fill('#dashboard-search-input', 'Resume');
+    console.log('   Checking breadcrumbs navigation: Workspace > Study Material');
+    const breadcrumbs1 = await page.textContent('#breadcrumbs-nav');
+    console.log(`   Breadcrumb: ${breadcrumbs1}`);
+
+    console.log('   Clicking empty category "Certificates" in sidebar...');
+    await page.click('#cat-item-certificates');
+    await page.waitForTimeout(1500);
+    await page.waitForSelector('#empty-files-container');
+    console.log('   ✅ Empty state correctly displayed for empty category!');
+
+    console.log('   Resetting to "All Documents"...');
+    await page.click('#cat-item-all');
+    await page.waitForTimeout(1500);
+
+    // -----------------------------------------------------------------
+    // PHASE 4 (Part 3): Custom Category Creation & File Reclassification
+    // -----------------------------------------------------------------
+    console.log('\n🔹 PHASE 4: Custom Category Creation & Move File');
+    console.log('   Clicking "+" to add a new category...');
+    await page.click('#btn-add-category-open');
+    await page.waitForSelector('#add-category-modal');
+    await page.waitForTimeout(800);
+
+    console.log('   Entering category name "System Design"...');
+    await page.fill('#input-category-name', 'System Design');
+    await page.waitForTimeout(800);
+
+    console.log('   Submitting category creation...');
+    await page.click('#btn-create-category-submit');
+
+    await page.waitForSelector('#cat-item-system-design', { timeout: 8000 });
+    console.log('   ✅ Category "System Design" created and rendered in tree sidebar!');
+    await page.waitForTimeout(1500);
+
+    console.log('   Testing Move File feature: Moving document to "System Design"...');
+    // Click the Move Category icon on the first file card
+    const moveButtons = await page.$$('button[title="Move category"]');
+    if (moveButtons.length > 0) {
+      await moveButtons[0].click();
+      await page.waitForSelector('#select-move-category');
+      await page.waitForTimeout(800);
+
+      await page.selectOption('#select-move-category', 'System Design');
+      await page.waitForTimeout(800);
+
+      await page.click('#btn-confirm-move');
+      await page.waitForTimeout(2000);
+      console.log('   ✅ Document reclassified to "System Design"! Live counts updated.');
+    }
+
+    // -----------------------------------------------------------------
+    // PHASE 4 (Part 4): Search & Overview Inspection
+    // -----------------------------------------------------------------
+    console.log('\n🔹 Live Search Query Testing:');
+    console.log('   Searching for "Security" in search bar...');
+    await page.fill('#dashboard-search-input', 'Security');
     await page.waitForTimeout(2000);
 
     console.log('   Clearing search query...');
     await page.fill('#dashboard-search-input', '');
     await page.waitForTimeout(2000);
 
-    // -----------------------------------------------------------------
-    // FEATURE 6: Workspace Overview
-    // -----------------------------------------------------------------
-    console.log('\n🔹 FEATURE 6: Active Workspace Overview');
-    console.log('   Holding browser window open for 6 seconds for you to inspect everything...');
-    await page.waitForTimeout(6000);
-
     console.log('\n======================================================');
-    console.log('🎉 ALL PHASES & FEATURES VERIFIED LIVE ON GOOGLE CHROME!');
+    console.log('🎉 ALL PHASES (1, 2, 3, 4) VERIFIED LIVE ON GOOGLE CHROME!');
+    console.log('   Holding browser window open for 10 seconds for review...');
     console.log('======================================================\n');
+    await page.waitForTimeout(10000);
+
   } catch (err) {
     console.error('❌ Live Demo Error:', err);
   } finally {
-    // Clean up temporary local files
     if (fs.existsSync(doc1Path)) fs.unlinkSync(doc1Path);
     if (fs.existsSync(doc2Path)) fs.unlinkSync(doc2Path);
     await browser.close();

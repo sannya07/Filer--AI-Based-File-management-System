@@ -126,12 +126,16 @@ const uploadFile = async (req, res, next) => {
  */
 const getFiles = async (req, res, next) => {
   try {
-    const { category, search, sort = 'uploadedAt' } = req.query;
+    const { category, subcategory, search, sort = 'uploadedAt' } = req.query;
 
     const query = { ownerId: req.user._id };
 
     if (category && category !== 'All') {
       query.category = category;
+    }
+
+    if (subcategory && subcategory !== 'All') {
+      query.subcategory = subcategory;
     }
 
     if (search) {
