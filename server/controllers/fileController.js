@@ -1,6 +1,8 @@
 const File = require('../models/File');
 const { generateHash } = require('../services/hashService');
 const { uploadBuffer, deleteResource } = require('../services/cloudinaryService');
+const { saveLocalBuffer, getFileBuffer } = require('../services/fileStorageService');
+const { answerFileQuestion } = require('../services/qaService');
 const path = require('path');
 
 /**
@@ -108,6 +110,9 @@ const uploadFile = async (req, res, next) => {
       cloudinaryUrl: cloudinaryResult.secureUrl,
       publicId: cloudinaryResult.publicId
     });
+
+    // 4. Cache buffer locally for instant lazy processing (Q&A)
+    saveLocalBuffer(newFile._id, hash, buffer);
 
     res.status(201).json({
       success: true,
@@ -235,10 +240,68 @@ const deleteFile = async (req, res, next) => {
   }
 };
 
+/**
+ * @desc    Ask a question about a specific file (Lazy RAG with strict grounding)
+ * @route   POST /api/files/:id/ask
+ * @access  Private
+ */
+const askFile = async (req, res, next) => {
+  try {
+    const { question, history } = req.body;
+
+    if (!question || typeof question !== 'string' || !question.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Question is required.'
+      });
+    }
+
+    const file = await File.findOne({
+      _id: req.params.id,
+      ownerId: req.user._id
+    });
+
+    if (!file) {
+      return res.status(404).json({
+        success: false,
+        message: 'File not found.'
+      });
+    }
+
+    // 1. Fetch file buffer (Lazy retrieval from local cache or Cloudinary)
+    const buffer = await getFileBuffer(file);
+
+    // 2. Perform lazy chunking, ranking, and grounded question answering
+    const { answer, sources } = await answerFileQuestion(
+      file,
+      buffer,
+      question.trim(),
+      history || []
+    );
+
+    // 3. Track access
+    file.accessCount += 1;
+    file.lastAccessed = new Date();
+    await file.save();
+
+    res.status(200).json({
+      success: true,
+      fileId: file._id,
+      fileName: file.fileName,
+      question: question.trim(),
+      answer,
+      sources
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   checkDuplicate,
   uploadFile,
   getFiles,
   getFileById,
-  deleteFile
+  deleteFile,
+  askFile
 };

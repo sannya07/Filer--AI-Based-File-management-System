@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { formatFileSize } from '../../utils/hashUtil';
 import ShareModal from '../ShareModal/ShareModal';
+import AskFileDialog from '../AskFileDialog/AskFileDialog';
 import {
   FileText,
   FileCode,
@@ -14,6 +15,7 @@ import {
   HardDrive,
   FolderInput,
   Share2,
+  Sparkles,
   Check,
   X
 } from 'lucide-react';
@@ -69,6 +71,7 @@ const FileCard = ({ file, onDelete, onMove, categoryTree = [] }) => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [isMoving, setIsMoving] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isAskDialogOpen, setIsAskDialogOpen] = useState(false);
   const [selectedTargetCat, setSelectedTargetCat] = useState(file.category || 'Others');
   const [selectedTargetSubcat, setSelectedTargetSubcat] = useState(file.subcategory || '');
 
@@ -277,6 +280,17 @@ const FileCard = ({ file, onDelete, onMove, categoryTree = [] }) => {
             <Download className="h-4 w-4" />
           </a>
 
+          {/* Ask Your File AI Button */}
+          <button
+            id={`btn-ask-file-${file._id}`}
+            type="button"
+            onClick={() => setIsAskDialogOpen(true)}
+            title="Ask Your File (AI Q&A)"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-indigo-600 transition hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-slate-800"
+          >
+            <Sparkles className="h-4 w-4" />
+          </button>
+
           {/* Share Link Button */}
           <button
             id={`btn-share-file-${file._id}`}
@@ -334,6 +348,13 @@ const FileCard = ({ file, onDelete, onMove, categoryTree = [] }) => {
       <ShareModal
         isOpen={isShareModalOpen}
         onClose={() => setIsShareModalOpen(false)}
+        file={file}
+      />
+
+      {/* Ask Your File Modal */}
+      <AskFileDialog
+        isOpen={isAskDialogOpen}
+        onClose={() => setIsAskDialogOpen(false)}
         file={file}
       />
     </div>

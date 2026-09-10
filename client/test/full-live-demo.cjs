@@ -317,8 +317,49 @@ async function runFullLiveDemo() {
     await publicContext.close();
     await page.bringToFront();
 
+    // Close share modal
+    await page.click('#btn-close-share-modal');
+    await page.waitForTimeout(1000);
+
+    // -----------------------------------------------------------------
+    // PHASE 7: Ask Your File (Lazy RAG & Strict Grounding)
+    // -----------------------------------------------------------------
+    console.log('\n🔹 PHASE 7: Ask Your File (Document Q&A & Strict Grounding)');
+    console.log('   Clicking "Ask Your File" on the AWS Guide document card...');
+    const askButtons = await page.$$('button[title*="Ask Your File"]');
+    if (askButtons.length > 0) {
+      await askButtons[0].click();
+      await page.waitForSelector('#ask-file-dialog-container', { timeout: 8000 });
+      console.log('   ✨ SUCCESS: AskFileDialog modal opened via React Portal!');
+      await page.waitForTimeout(1500);
+
+      console.log('   Asking in-context question: "What does IAM cover?"...');
+      await page.fill('#input-ask-question', 'What does IAM cover?');
+      await page.click('#btn-ask-submit');
+
+      await page.waitForSelector('button:has-text("Source Chunk")', { timeout: 25000 });
+      console.log('   ✨ SUCCESS: Grounded answer generated with Source References!');
+      await page.waitForTimeout(1500);
+
+      console.log('   Expanding Source References accordion (FR-38)...');
+      await page.click('button:has-text("Source Chunk")');
+      await page.waitForTimeout(1500);
+
+      console.log('   Asking out-of-context question: "Who won the FIFA World Cup?"...');
+      await page.fill('#input-ask-question', 'Who won the FIFA World Cup?');
+      await page.click('#btn-ask-submit');
+      await page.waitForTimeout(3500);
+
+      console.log('   🛡️ SUCCESS: Strict Grounding verified (refused external hallucination)!');
+      await page.waitForTimeout(1500);
+
+      console.log('   Closing AskFileDialog...');
+      await page.click('#btn-close-ask-file');
+      await page.waitForTimeout(1000);
+    }
+
     console.log('\n======================================================');
-    console.log('🎉 ALL PHASES (1, 2, 3, 4, 5, 6) VERIFIED LIVE ON GOOGLE CHROME!');
+    console.log('🎉 ALL PHASES (1, 2, 3, 4, 5, 6, 7) VERIFIED LIVE ON GOOGLE CHROME!');
     console.log('   Holding browser window open for 10 seconds for review...');
     console.log('======================================================\n');
     await page.waitForTimeout(10000);

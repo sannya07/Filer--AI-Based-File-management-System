@@ -50,6 +50,17 @@ const fileService = {
   async deleteFile(id) {
     const response = await api.delete(`/files/${id}`);
     return response.data;
+  },
+
+  /**
+   * Ask a question about a specific file (Lazy RAG with strict grounding)
+   * @param {string} id - File ID
+   * @param {string} question - User question
+   * @param {Array} history - Previous messages
+   */
+  async askFile(id, question, history = []) {
+    const response = await api.post(`/files/${id}/ask`, { question, history });
+    return response.data;
   }
 };
 

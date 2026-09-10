@@ -5,7 +5,8 @@ const {
   uploadFile,
   getFiles,
   getFileById,
-  deleteFile
+  deleteFile,
+  askFile
 } = require('../controllers/fileController');
 const { protect } = require('../middleware/authMiddleware');
 const upload = require('../middleware/uploadMiddleware');
@@ -17,6 +18,7 @@ router.post('/check-duplicate', checkDuplicate);
 router.post('/upload', upload.single('file'), uploadFile);
 router.get('/', getFiles);
 router.get('/:id', getFileById);
+router.post('/:id/ask', askFile);
 router.delete('/:id', deleteFile);
 
 module.exports = router;

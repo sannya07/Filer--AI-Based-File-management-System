@@ -14,9 +14,10 @@ dist/
 build/
 client/dist/
 
-# Server uploads
+# Server uploads & cache
 server/uploads/*
 !server/uploads/.gitkeep
+server/storage/
 
 # Logs
 npm-debug.log*
