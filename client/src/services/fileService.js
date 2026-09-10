@@ -61,6 +61,33 @@ const fileService = {
   async askFile(id, question, history = []) {
     const response = await api.post(`/files/${id}/ask`, { question, history });
     return response.data;
+  },
+
+  /**
+   * Get top important & trending files ranked by Priority Queue (Max-Heap DSA)
+   * @param {number} limit 
+   */
+  async getImportantFiles(limit = 6) {
+    const response = await api.get('/files/important', { params: { limit } });
+    return response.data;
+  },
+
+  /**
+   * Toggle pin status on a file (+500 priority boost)
+   * @param {string} id - File ID
+   */
+  async togglePinFile(id) {
+    const response = await api.patch(`/files/${id}/pin`);
+    return response.data;
+  },
+
+  /**
+   * Record explicit access event on a file
+   * @param {string} id - File ID
+   */
+  async recordFileAccess(id) {
+    const response = await api.post(`/files/${id}/access`);
+    return response.data;
   }
 };
 

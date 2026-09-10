@@ -16,6 +16,7 @@ import {
   FolderInput,
   Share2,
   Sparkles,
+  Pin,
   Check,
   X
 } from 'lucide-react';
@@ -66,7 +67,7 @@ const getFileIcon = (fileName, fileType) => {
   };
 };
 
-const FileCard = ({ file, onDelete, onMove, categoryTree = [] }) => {
+const FileCard = ({ file, onDelete, onMove, onTogglePin, categoryTree = [] }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [isMoving, setIsMoving] = useState(false);
@@ -125,6 +126,12 @@ const FileCard = ({ file, onDelete, onMove, categoryTree = [] }) => {
 
           <div className="flex flex-col items-end gap-1">
             <div className="flex items-center gap-1.5">
+              {file.isPinned && (
+                <span className="inline-flex items-center gap-0.5 rounded-md bg-purple-50 px-1.5 py-0.5 text-[10px] font-bold text-purple-700 dark:bg-purple-950/60 dark:text-purple-300">
+                  <Pin className="h-2.5 w-2.5" />
+                  Pinned
+                </span>
+              )}
               {file.confidence && (
                 <span className="inline-flex items-center rounded-md bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
                   {file.confidence}
@@ -301,6 +308,23 @@ const FileCard = ({ file, onDelete, onMove, categoryTree = [] }) => {
           >
             <Share2 className="h-4 w-4" />
           </button>
+
+          {/* Pin / Unpin Button (Priority Queue DSA) */}
+          {onTogglePin && (
+            <button
+              id={`btn-pin-file-${file._id}`}
+              type="button"
+              onClick={() => onTogglePin(file._id)}
+              title={file.isPinned ? 'Unpin file' : 'Pin to top (+500 Priority)'}
+              className={`inline-flex h-8 w-8 items-center justify-center rounded-lg transition ${
+                file.isPinned
+                  ? 'bg-purple-50 text-purple-600 dark:bg-purple-950/60 dark:text-purple-300'
+                  : 'text-gray-500 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-slate-800 dark:hover:text-indigo-400'
+              }`}
+            >
+              <Pin className="h-4 w-4" />
+            </button>
+          )}
 
           {/* Move Category Button */}
           {onMove && (

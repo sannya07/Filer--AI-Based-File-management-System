@@ -6,7 +6,10 @@ const {
   getFiles,
   getFileById,
   deleteFile,
-  askFile
+  askFile,
+  getImportantFiles,
+  togglePinFile,
+  recordFileAccess
 } = require('../controllers/fileController');
 const { protect } = require('../middleware/authMiddleware');
 const upload = require('../middleware/uploadMiddleware');
@@ -16,9 +19,12 @@ router.use(protect);
 
 router.post('/check-duplicate', checkDuplicate);
 router.post('/upload', upload.single('file'), uploadFile);
+router.get('/important', getImportantFiles);
 router.get('/', getFiles);
 router.get('/:id', getFileById);
 router.post('/:id/ask', askFile);
+router.patch('/:id/pin', togglePinFile);
+router.post('/:id/access', recordFileAccess);
 router.delete('/:id', deleteFile);
 
 module.exports = router;

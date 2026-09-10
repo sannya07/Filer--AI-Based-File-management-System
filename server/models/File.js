@@ -75,6 +75,11 @@ const fileSchema = new mongoose.Schema(
       type: Date,
       default: Date.now
     },
+    isPinned: {
+      type: Boolean,
+      default: false,
+      index: true
+    },
     uploadedAt: {
       type: Date,
       default: Date.now

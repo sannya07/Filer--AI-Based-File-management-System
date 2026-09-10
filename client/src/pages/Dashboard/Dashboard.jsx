@@ -5,6 +5,7 @@ import FileCard from '../../components/FileCard/FileCard';
 import CategoryTree from '../../components/CategoryTree/CategoryTree';
 import SearchBar from '../../components/SearchBar/SearchBar';
 import UploadModal from '../../components/UploadModal/UploadModal';
+import ImportantFilesShelf from '../../components/ImportantFilesShelf/ImportantFilesShelf';
 import fileService from '../../services/fileService';
 import categoryService from '../../services/categoryService';
 import { formatFileSize } from '../../utils/hashUtil';
@@ -27,6 +28,7 @@ const Dashboard = () => {
   const { user } = useAuth();
 
   const [files, setFiles] = useState([]);
+  const [importantFiles, setImportantFiles] = useState([]);
   const [categoryTree, setCategoryTree] = useState([]);
   const [loadingFiles, setLoadingFiles] = useState(true);
   const [loadingTree, setLoadingTree] = useState(true);
@@ -84,6 +86,18 @@ const Dashboard = () => {
     }
   }, [selectedCategory, selectedSubcategory, searchQuery]);
 
+  // 3. Fetch Important Files (Priority Queue Max-Heap DSA)
+  const fetchImportantFiles = useCallback(async () => {
+    try {
+      const res = await fileService.getImportantFiles(6);
+      if (res.success) {
+        setImportantFiles(res.files || []);
+      }
+    } catch (err) {
+      console.error('Failed to load important files:', err);
+    }
+  }, []);
+
   useEffect(() => {
     fetchCategoryTree();
   }, [fetchCategoryTree]);
@@ -91,6 +105,10 @@ const Dashboard = () => {
   useEffect(() => {
     fetchFiles();
   }, [fetchFiles]);
+
+  useEffect(() => {
+    fetchImportantFiles();
+  }, [fetchImportantFiles]);
 
   // Notifications helper
   const showToast = (msg) => {
@@ -103,6 +121,7 @@ const Dashboard = () => {
     showToast(`"${newFile.fileName}" uploaded successfully!`);
     fetchFiles();
     fetchCategoryTree();
+    fetchImportantFiles();
   };
 
   // Delete File callback
@@ -113,8 +132,33 @@ const Dashboard = () => {
       showToast('File deleted successfully.');
       fetchFiles();
       fetchCategoryTree();
+      fetchImportantFiles();
     } catch (error) {
       console.error('Failed to delete file:', error);
+    }
+  };
+
+  // Toggle Pin callback (Priority Queue DSA)
+  const handleTogglePin = async (fileId) => {
+    try {
+      const res = await fileService.togglePinFile(fileId);
+      if (res.success) {
+        showToast(res.isPinned ? 'File pinned to top (+500 pts)' : 'File unpinned');
+        fetchImportantFiles();
+        fetchFiles();
+      }
+    } catch (error) {
+      console.error('Failed to toggle pin:', error);
+    }
+  };
+
+  // Record Access callback
+  const handleFileAccessed = async (fileId) => {
+    try {
+      await fileService.recordFileAccess(fileId);
+      fetchImportantFiles();
+    } catch (error) {
+      console.error('Failed to record access:', error);
     }
   };
 
@@ -286,6 +330,13 @@ const Dashboard = () => {
 
           {/* Column 2: Search, Breadcrumbs & File Grid */}
           <div className="lg:col-span-3 space-y-6">
+            {/* Priority Queue Important Files Shelf */}
+            <ImportantFilesShelf
+              importantFiles={importantFiles}
+              onTogglePin={handleTogglePin}
+              onFileAccessed={handleFileAccessed}
+            />
+
             {/* Top Toolbar: Breadcrumbs & Search */}
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-gray-200/80 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
               {/* Breadcrumbs */}
@@ -386,6 +437,7 @@ const Dashboard = () => {
                     file={file}
                     onDelete={handleDeleteFile}
                     onMove={handleMoveFile}
+                    onTogglePin={handleTogglePin}
                     categoryTree={categoryTree}
                   />
                 ))}

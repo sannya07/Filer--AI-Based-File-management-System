@@ -3,6 +3,7 @@ const { generateHash } = require('../services/hashService');
 const { uploadBuffer, deleteResource } = require('../services/cloudinaryService');
 const { saveLocalBuffer, getFileBuffer } = require('../services/fileStorageService');
 const { answerFileQuestion } = require('../services/qaService');
+const { getTopImportantFiles } = require('../services/priorityQueueService');
 const path = require('path');
 
 /**
@@ -297,11 +298,104 @@ const askFile = async (req, res, next) => {
   }
 };
 
+/**
+ * @desc    Get top important & trending files ranked by Priority Queue (Max-Heap DSA)
+ * @route   GET /api/files/important
+ * @access  Private
+ */
+const getImportantFiles = async (req, res, next) => {
+  try {
+    const limit = Number(req.query.limit) || 6;
+    const files = await File.find({ ownerId: req.user._id });
+
+    const topImportant = getTopImportantFiles(files, limit);
+
+    res.status(200).json({
+      success: true,
+      count: topImportant.length,
+      files: topImportant
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Toggle pin status on a file (gives +500 priority boost in Max-Heap)
+ * @route   PATCH /api/files/:id/pin
+ * @access  Private
+ */
+const togglePinFile = async (req, res, next) => {
+  try {
+    const file = await File.findOne({
+      _id: req.params.id,
+      ownerId: req.user._id
+    });
+
+    if (!file) {
+      return res.status(404).json({
+        success: false,
+        message: 'File not found.'
+      });
+    }
+
+    file.isPinned = !file.isPinned;
+    file.lastAccessed = new Date();
+    await file.save();
+
+    res.status(200).json({
+      success: true,
+      message: file.isPinned ? 'File pinned to top' : 'File unpinned',
+      isPinned: file.isPinned,
+      file
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Record file access (increments accessCount & updates recency)
+ * @route   POST /api/files/:id/access
+ * @access  Private
+ */
+const recordFileAccess = async (req, res, next) => {
+  try {
+    const file = await File.findOne({
+      _id: req.params.id,
+      ownerId: req.user._id
+    });
+
+    if (!file) {
+      return res.status(404).json({
+        success: false,
+        message: 'File not found.'
+      });
+    }
+
+    file.accessCount += 1;
+    file.lastAccessed = new Date();
+    await file.save();
+
+    res.status(200).json({
+      success: true,
+      accessCount: file.accessCount,
+      lastAccessed: file.lastAccessed,
+      file
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   checkDuplicate,
   uploadFile,
   getFiles,
   getFileById,
   deleteFile,
-  askFile
+  askFile,
+  getImportantFiles,
+  togglePinFile,
+  recordFileAccess
 };
