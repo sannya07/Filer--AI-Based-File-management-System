@@ -1,12 +1,22 @@
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 const axios = require('axios');
 
-const STORAGE_DIR = path.join(__dirname, '../storage/uploads');
+// In serverless environments (AWS Lambda / Vercel), /var/task is read-only.
+// Use os.tmpdir() (/tmp) which is the only writable directory in serverless.
+const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.NODE_ENV === 'production');
+const STORAGE_DIR = isServerless
+  ? path.join(os.tmpdir(), 'filer_storage')
+  : path.join(__dirname, '../storage/uploads');
 
-// Ensure storage directory exists
-if (!fs.existsSync(STORAGE_DIR)) {
-  fs.mkdirSync(STORAGE_DIR, { recursive: true });
+// Ensure storage directory exists safely (never crash on module load)
+try {
+  if (!fs.existsSync(STORAGE_DIR)) {
+    fs.mkdirSync(STORAGE_DIR, { recursive: true });
+  }
+} catch (err) {
+  console.warn('Storage directory initialization notice:', err.message);
 }
 
 /**

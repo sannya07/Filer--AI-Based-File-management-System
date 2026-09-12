@@ -19,8 +19,9 @@ const connectDB = async () => {
   } catch (error) {
     cachedConnection = null;
     console.error(`MongoDB Connection Error: ${error.message}`);
-    // Only exit in standalone local CLI mode, not in serverless execution
-    if (process.env.NODE_ENV !== 'production') {
+    // Only exit in standalone local CLI mode, never in serverless environments
+    const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+    if (!isServerless && process.env.NODE_ENV !== 'production') {
       process.exit(1);
     }
     throw error;

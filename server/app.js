@@ -19,8 +19,17 @@ const categoryRoutes = require('./routes/categoryRoutes');
 const searchRoutes = require('./routes/searchRoutes');
 const shareRoutes = require('./routes/shareRoutes');
 
+// Vercel Serverless Path Normalization Middleware
+app.use((req, res, next) => {
+  const matchedPath = req.headers['x-matched-path'] || req.headers['x-forwarded-uri'];
+  if (matchedPath && (req.url === '/api/index.js' || req.url === '/api/index' || req.url === '/api')) {
+    req.url = matchedPath;
+  }
+  next();
+});
+
 // Root & Health Check Endpoints
-app.get('/', (req, res) => {
+app.get(['/', '/api', '/api/index.js', '/api/index'], (req, res) => {
   res.status(200).json({
     status: 'success',
     service: 'FILER AI Backend Server',
