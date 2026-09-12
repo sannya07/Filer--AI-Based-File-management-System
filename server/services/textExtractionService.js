@@ -1,6 +1,42 @@
 const path = require('path');
-const pdfParseModule = require('pdf-parse');
-const mammoth = require('mammoth');
+
+// Polyfill DOMMatrix for PDF parsing in headless/serverless environments
+if (typeof globalThis.DOMMatrix === 'undefined') {
+  globalThis.DOMMatrix = class DOMMatrix {
+    constructor() {
+      this.a = 1;
+      this.b = 0;
+      this.c = 0;
+      this.d = 1;
+      this.e = 0;
+      this.f = 0;
+    }
+  };
+}
+
+let pdfParseModule = null;
+const getPdfParser = () => {
+  if (!pdfParseModule) {
+    try {
+      pdfParseModule = require('pdf-parse');
+    } catch (err) {
+      console.warn('pdf-parse lazy load notice:', err.message);
+    }
+  }
+  return pdfParseModule;
+};
+
+let mammothModule = null;
+const getMammoth = () => {
+  if (!mammothModule) {
+    try {
+      mammothModule = require('mammoth');
+    } catch (err) {
+      console.warn('mammoth lazy load notice:', err.message);
+    }
+  }
+  return mammothModule;
+};
 
 /**
  * Extracts raw textual content from uploaded file buffer
@@ -18,21 +54,29 @@ const extractTextFromBuffer = async (buffer, originalName) => {
 
   try {
     if (ext === '.pdf') {
-      if (typeof pdfParseModule === 'function') {
-        const pdfData = await pdfParseModule(buffer);
+      const parser = getPdfParser();
+      if (typeof parser === 'function') {
+        const pdfData = await parser(buffer);
         extractedText = pdfData.text || '';
-      } else if (pdfParseModule.PDFParse) {
-        const parser = new pdfParseModule.PDFParse({ data: buffer });
+      } else if (parser && parser.PDFParse) {
+        const instance = new parser.PDFParse({ data: buffer });
         try {
-          const result = await parser.getText();
+          const result = await instance.getText();
           extractedText = result.text || '';
         } finally {
-          await parser.destroy();
+          await instance.destroy();
         }
+      } else {
+        extractedText = `Document Name: ${originalName}\nFormat: ${ext}\nSize: ${buffer.length} bytes`;
       }
     } else if (ext === '.docx' || ext === '.doc') {
-      const docxData = await mammoth.extractRawText({ buffer });
-      extractedText = docxData.value || '';
+      const mammoth = getMammoth();
+      if (mammoth) {
+        const docxData = await mammoth.extractRawText({ buffer });
+        extractedText = docxData.value || '';
+      } else {
+        extractedText = `Document Name: ${originalName}\nFormat: ${ext}\nSize: ${buffer.length} bytes`;
+      }
     } else if (['.txt', '.csv', '.json', '.md'].includes(ext)) {
       extractedText = buffer.toString('utf-8');
     } else {
