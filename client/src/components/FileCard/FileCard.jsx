@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { formatFileSize } from '../../utils/hashUtil';
+import { triggerDownload } from '../../utils/downloadUtil';
 import ShareModal from '../ShareModal/ShareModal';
 import AskFileDialog from '../AskFileDialog/AskFileDialog';
 import {
@@ -17,6 +18,7 @@ import {
   Share2,
   Sparkles,
   Pin,
+  Edit2,
   Check,
   X
 } from 'lucide-react';
@@ -67,10 +69,12 @@ const getFileIcon = (fileName, fileType) => {
   };
 };
 
-const FileCard = ({ file, onDelete, onMove, onTogglePin, categoryTree = [] }) => {
+const FileCard = ({ file, onDelete, onMove, onTogglePin, onRename, categoryTree = [] }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [isMoving, setIsMoving] = useState(false);
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [renameInput, setRenameInput] = useState(file.fileName);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isAskDialogOpen, setIsAskDialogOpen] = useState(false);
   const [selectedTargetCat, setSelectedTargetCat] = useState(file.category || 'Others');
@@ -100,6 +104,20 @@ const FileCard = ({ file, onDelete, onMove, onTogglePin, categoryTree = [] }) =>
     }
   };
 
+  const handleRenameSubmit = async (e) => {
+    e.preventDefault();
+    if (!onRename || !renameInput.trim() || renameInput === file.fileName) {
+      setIsRenaming(false);
+      return;
+    }
+    try {
+      await onRename(file._id, renameInput.trim());
+      setIsRenaming(false);
+    } catch (err) {
+      console.error('Rename failed:', err);
+    }
+  };
+
   const formattedDate = new Date(file.uploadedAt).toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
@@ -113,7 +131,7 @@ const FileCard = ({ file, onDelete, onMove, onTogglePin, categoryTree = [] }) =>
   return (
     <div
       id={`file-card-${file._id}`}
-      className="group relative flex flex-col justify-between rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
+      className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
     >
       <div>
         {/* Header: Icon & Category Hierarchy */}
@@ -154,13 +172,61 @@ const FileCard = ({ file, onDelete, onMove, onTogglePin, categoryTree = [] }) =>
           </div>
         </div>
 
-        {/* File Name */}
-        <h3
-          title={file.fileName}
-          className="mt-4 truncate text-sm font-bold text-gray-900 dark:text-white"
-        >
-          {file.fileName}
-        </h3>
+        {/* File Name or Inline Rename Form */}
+        {isRenaming ? (
+          <form onSubmit={handleRenameSubmit} className="mt-3 flex items-center gap-1.5">
+            <input
+              id={`input-rename-file-${file._id}`}
+              type="text"
+              value={renameInput}
+              onChange={(e) => setRenameInput(e.target.value)}
+              className="w-full rounded-lg border border-indigo-300 bg-white px-2 py-1 text-xs font-bold text-gray-900 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-indigo-700 dark:bg-slate-800 dark:text-white"
+              autoFocus
+            />
+            <button
+              id={`btn-save-rename-${file._id}`}
+              type="submit"
+              className="rounded-lg bg-indigo-600 p-1 text-white hover:bg-indigo-500"
+              title="Save name"
+            >
+              <Check className="h-3.5 w-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setIsRenaming(false);
+                setRenameInput(file.fileName);
+              }}
+              className="rounded-lg border border-gray-200 p-1 text-gray-400 hover:bg-gray-100 dark:border-slate-700"
+              title="Cancel"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </form>
+        ) : (
+          <div className="mt-4 flex items-center justify-between gap-1 group/title">
+            <h3
+              title={file.fileName}
+              className="truncate text-sm font-bold text-gray-900 dark:text-white"
+            >
+              {file.fileName}
+            </h3>
+            {onRename && (
+              <button
+                id={`btn-rename-file-${file._id}`}
+                type="button"
+                onClick={() => {
+                  setRenameInput(file.fileName);
+                  setIsRenaming(true);
+                }}
+                title="Rename file"
+                className="opacity-0 group-hover/title:opacity-100 p-1 text-gray-400 hover:text-indigo-600 transition"
+              >
+                <Edit2 className="h-3 w-3" />
+              </button>
+            )}
+          </div>
+        )}
 
         {/* AI Summary Snippet if present */}
         {file.summary && (
@@ -264,107 +330,143 @@ const FileCard = ({ file, onDelete, onMove, onTogglePin, categoryTree = [] }) =>
       )}
 
       {/* Action Footer */}
-      <div className="mt-5 flex items-center justify-between border-t border-gray-100 pt-3 dark:border-slate-800/80">
-        <div className="flex items-center gap-1">
-          {/* Open / View */}
-          <a
-            href={file.cloudinaryUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            title="Open in new tab"
-            className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 transition hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-slate-800 dark:hover:text-indigo-400"
-          >
-            <ExternalLink className="h-4 w-4" />
-          </a>
-
-          {/* Download */}
-          <a
-            href={file.cloudinaryUrl}
-            download={file.fileName}
-            title="Download file"
-            className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 transition hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-slate-800 dark:hover:text-indigo-400"
-          >
-            <Download className="h-4 w-4" />
-          </a>
-
-          {/* Ask Your File AI Button */}
-          <button
-            id={`btn-ask-file-${file._id}`}
-            type="button"
-            onClick={() => setIsAskDialogOpen(true)}
-            title="Ask Your File (AI Q&A)"
-            className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-indigo-600 transition hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-slate-800"
-          >
-            <Sparkles className="h-4 w-4" />
-          </button>
-
-          {/* Share Link Button */}
-          <button
-            id={`btn-share-file-${file._id}`}
-            type="button"
-            onClick={() => setIsShareModalOpen(true)}
-            title="Share file"
-            className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 transition hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-slate-800 dark:hover:text-indigo-400"
-          >
-            <Share2 className="h-4 w-4" />
-          </button>
-
-          {/* Pin / Unpin Button (Priority Queue DSA) */}
-          {onTogglePin && (
-            <button
-              id={`btn-pin-file-${file._id}`}
-              type="button"
-              onClick={() => onTogglePin(file._id)}
-              title={file.isPinned ? 'Unpin file' : 'Pin to top (+500 Priority)'}
-              className={`inline-flex h-8 w-8 items-center justify-center rounded-lg transition ${
-                file.isPinned
-                  ? 'bg-purple-50 text-purple-600 dark:bg-purple-950/60 dark:text-purple-300'
-                  : 'text-gray-500 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-slate-800 dark:hover:text-indigo-400'
-              }`}
-            >
-              <Pin className="h-4 w-4" />
-            </button>
-          )}
-
-          {/* Move Category Button */}
-          {onMove && (
-            <button
-              id={`btn-move-file-${file._id}`}
-              type="button"
-              onClick={() => setIsMoving(!isMoving)}
-              title="Move category"
-              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 transition hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-slate-800 dark:hover:text-indigo-400"
-            >
-              <FolderInput className="h-4 w-4" />
-            </button>
-          )}
-        </div>
-
-        {/* Delete button or confirmation */}
+      <div className="mt-5 border-t border-gray-100 pt-3 dark:border-slate-800/80">
         {showConfirm ? (
-          <div className="flex items-center gap-1.5">
-            <button
-              onClick={handleDelete}
-              disabled={isDeleting}
-              className="rounded-lg bg-red-600 px-2.5 py-1 text-xs font-semibold text-white transition hover:bg-red-500 disabled:opacity-50"
-            >
-              {isDeleting ? 'Deleting...' : 'Confirm'}
-            </button>
-            <button
-              onClick={() => setShowConfirm(false)}
-              className="rounded-lg border border-gray-200 px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50 dark:border-slate-700 dark:text-gray-300"
-            >
-              Cancel
-            </button>
+          <div
+            id={`delete-confirm-strip-${file._id}`}
+            className="flex w-full items-center justify-between rounded-xl bg-red-50/90 px-3 py-2 border border-red-200 shadow-sm transition-all animate-fadeIn dark:bg-red-950/40 dark:border-red-900/50"
+          >
+            <div className="flex items-center gap-1.5 shrink-0">
+              <Trash2 className="h-3.5 w-3.5 text-red-600 dark:text-red-400" />
+              <span className="text-xs font-semibold text-red-700 dark:text-red-300 whitespace-nowrap">
+                Delete file?
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button
+                id={`btn-cancel-delete-${file._id}`}
+                type="button"
+                onClick={() => setShowConfirm(false)}
+                className="rounded-lg px-2.5 py-1 text-xs font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-slate-800 transition"
+              >
+                Cancel
+              </button>
+              <button
+                id={`btn-confirm-delete-${file._id}`}
+                type="button"
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="rounded-lg bg-red-600 px-3 py-1 text-xs font-semibold text-white shadow-sm hover:bg-red-500 active:scale-95 transition disabled:opacity-50"
+              >
+                {isDeleting ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
           </div>
         ) : (
-          <button
-            onClick={() => setShowConfirm(true)}
-            title="Delete file"
-            className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40 dark:hover:text-red-400"
-          >
-            <Trash2 className="h-4 w-4" />
-          </button>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-0.5 sm:gap-1">
+              {/* Open / View */}
+              <a
+                href={file.cloudinaryUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Open in new tab"
+                className="inline-flex h-7.5 w-7.5 sm:h-8 sm:w-8 items-center justify-center rounded-lg text-gray-500 transition hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-slate-800 dark:hover:text-indigo-400"
+              >
+                <ExternalLink className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              </a>
+
+              {/* Download */}
+              <button
+                type="button"
+                id={`btn-download-file-${file._id}`}
+                onClick={() => triggerDownload(file.cloudinaryUrl, file.fileName)}
+                title="Download file"
+                className="inline-flex h-7.5 w-7.5 sm:h-8 sm:w-8 items-center justify-center rounded-lg text-gray-500 transition hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-slate-800 dark:hover:text-indigo-400"
+              >
+                <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              </button>
+
+              {/* Ask Your File AI Button */}
+              <button
+                id={`btn-ask-file-${file._id}`}
+                type="button"
+                onClick={() => setIsAskDialogOpen(true)}
+                title="Ask Your File (AI Q&A)"
+                className="inline-flex h-7.5 w-7.5 sm:h-8 sm:w-8 items-center justify-center rounded-lg text-indigo-600 transition hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-slate-800"
+              >
+                <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              </button>
+
+              {/* Share Link Button */}
+              <button
+                id={`btn-share-file-${file._id}`}
+                type="button"
+                onClick={() => setIsShareModalOpen(true)}
+                title="Share file"
+                className="inline-flex h-7.5 w-7.5 sm:h-8 sm:w-8 items-center justify-center rounded-lg text-gray-500 transition hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-slate-800 dark:hover:text-indigo-400"
+              >
+                <Share2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              </button>
+
+              {/* Pin / Unpin Button (Priority Queue DSA) */}
+              {onTogglePin && (
+                <button
+                  id={`btn-pin-file-${file._id}`}
+                  type="button"
+                  onClick={() => onTogglePin(file._id)}
+                  title={file.isPinned ? 'Unpin file' : 'Pin to top (+500 Priority)'}
+                  className={`inline-flex h-7.5 w-7.5 sm:h-8 sm:w-8 items-center justify-center rounded-lg transition ${
+                    file.isPinned
+                      ? 'bg-purple-50 text-purple-600 dark:bg-purple-950/60 dark:text-purple-300'
+                      : 'text-gray-500 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-slate-800 dark:hover:text-indigo-400'
+                  }`}
+                >
+                  <Pin className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                </button>
+              )}
+
+              {/* Rename File Button (FR-13) */}
+              {onRename && (
+                <button
+                  id={`btn-rename-action-${file._id}`}
+                  type="button"
+                  onClick={() => {
+                    setRenameInput(file.fileName);
+                    setIsRenaming(!isRenaming);
+                  }}
+                  title="Rename file"
+                  className="inline-flex h-7.5 w-7.5 sm:h-8 sm:w-8 items-center justify-center rounded-lg text-gray-500 transition hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-slate-800 dark:hover:text-indigo-400"
+                >
+                  <Edit2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                </button>
+              )}
+
+              {/* Move Category Button */}
+              {onMove && (
+                <button
+                  id={`btn-move-file-${file._id}`}
+                  type="button"
+                  onClick={() => setIsMoving(!isMoving)}
+                  title="Move category"
+                  className="inline-flex h-7.5 w-7.5 sm:h-8 sm:w-8 items-center justify-center rounded-lg text-gray-500 transition hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-slate-800 dark:hover:text-indigo-400"
+                >
+                  <FolderInput className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                </button>
+              )}
+            </div>
+
+            {/* Delete button */}
+            <button
+              id={`btn-delete-file-${file._id}`}
+              type="button"
+              onClick={() => setShowConfirm(true)}
+              title="Delete file"
+              className="inline-flex h-7.5 w-7.5 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 transition hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40 dark:hover:text-red-400"
+            >
+              <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            </button>
+          </div>
         )}
       </div>
 

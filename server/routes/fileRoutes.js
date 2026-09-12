@@ -9,7 +9,8 @@ const {
   askFile,
   getImportantFiles,
   togglePinFile,
-  recordFileAccess
+  recordFileAccess,
+  renameFile
 } = require('../controllers/fileController');
 const { protect } = require('../middleware/authMiddleware');
 const upload = require('../middleware/uploadMiddleware');
@@ -24,6 +25,7 @@ router.get('/', getFiles);
 router.get('/:id', getFileById);
 router.post('/:id/ask', askFile);
 router.patch('/:id/pin', togglePinFile);
+router.patch('/:id/rename', renameFile);
 router.post('/:id/access', recordFileAccess);
 router.delete('/:id', deleteFile);
 

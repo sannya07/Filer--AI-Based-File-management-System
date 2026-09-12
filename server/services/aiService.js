@@ -11,11 +11,23 @@ const isOpenRouterConfigured = () => {
   return Boolean(apiKey && apiKey !== 'your_openrouter_api_key');
 };
 
+const cleanUnicode = (str) => {
+  if (!str) return '';
+  return String(str)
+    .replace(/[\u202F\u00A0\u2000-\u200B\uFEFF]/g, ' ')
+    .replace(/â€¯/g, ' ')
+    .replace(/â€“|â€”/g, '-')
+    .replace(/\s+/g, ' ')
+    .trim();
+};
+
 /**
  * Heuristic/rule-based analysis fallback when API key is not present or offline
  */
 const generateHeuristicAnalysis = (text, fileName) => {
-  const lowerText = (text + ' ' + fileName).toLowerCase();
+  const cleanName = cleanUnicode(fileName);
+  const cleanText = cleanUnicode(text);
+  const lowerText = (cleanText + ' ' + cleanName).toLowerCase();
 
   let category = 'Others';
   let confidence = '85%';
@@ -58,7 +70,7 @@ const generateHeuristicAnalysis = (text, fileName) => {
   const words = lowerText.match(/[a-z]{4,15}/g) || [];
   const wordFreq = {};
   words.forEach((w) => {
-    if (!['this', 'that', 'with', 'from', 'have', 'file', 'document', 'test'].includes(w)) {
+    if (!['this', 'that', 'with', 'from', 'have', 'file', 'document', 'test', 'screenshot'].includes(w)) {
       wordFreq[w] = (wordFreq[w] || 0) + 1;
     }
   });
@@ -68,8 +80,13 @@ const generateHeuristicAnalysis = (text, fileName) => {
 
   tags = Array.from(new Set([...tags, ...topWords]));
 
-  const firstSentence = text.split(/[.\n]/)[0]?.trim() || fileName;
-  const summary = `${fileName}: ${firstSentence.substring(0, 160)}.`;
+  let summary = '';
+  if (/^screenshot/i.test(cleanName)) {
+    summary = `Visual screen capture (${cleanName}) categorized under ${category}.`;
+  } else {
+    const firstSentence = cleanText.split(/[.\n]/)[0]?.trim() || cleanName;
+    summary = `${cleanName}: ${firstSentence.substring(0, 160)}.`;
+  }
   const description = `Document categorized under ${category} with key topics covering ${tags.slice(0, 3).join(', ')}.`;
 
   return {

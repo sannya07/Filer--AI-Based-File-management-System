@@ -255,12 +255,12 @@ const ShareModal = ({ isOpen, onClose, file }) => {
                   id="select-share-expiry"
                   value={expiryDays}
                   onChange={(e) => setExpiryDays(e.target.value)}
-                  className="mt-1.5 block w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-900 transition focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                  className="mt-1.5 block w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-900 transition focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:bg-slate-800"
                 >
-                  <option value="1">24 Hours (1 Day)</option>
-                  <option value="7">7 Days (1 Week)</option>
-                  <option value="30">30 Days (1 Month)</option>
-                  <option value="0">Never (Permanent until revoked)</option>
+                  <option value="1" className="bg-white text-gray-900 dark:bg-slate-800 dark:text-white">24 Hours (1 Day)</option>
+                  <option value="7" className="bg-white text-gray-900 dark:bg-slate-800 dark:text-white">7 Days (1 Week)</option>
+                  <option value="30" className="bg-white text-gray-900 dark:bg-slate-800 dark:text-white">30 Days (1 Month)</option>
+                  <option value="0" className="bg-white text-gray-900 dark:bg-slate-800 dark:text-white">Never (Permanent until revoked)</option>
                 </select>
               </div>
 

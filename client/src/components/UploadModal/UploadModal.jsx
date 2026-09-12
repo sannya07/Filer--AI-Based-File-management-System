@@ -171,16 +171,16 @@ const UploadModal = ({ isOpen, onClose, onUploadSuccess }) => {
         className="w-full max-w-lg overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-2xl transition-all dark:border-slate-800 dark:bg-slate-900"
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4 dark:border-slate-800">
+        <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3.5 sm:px-6 sm:py-4 dark:border-slate-800">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-400">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-400">
               <UploadCloud className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-gray-900 dark:text-white">
+              <h2 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white">
                 Upload Document
               </h2>
-              <p className="text-xs text-gray-500">
+              <p className="text-[11px] sm:text-xs text-gray-500">
                 AI understanding, classification, and duplicate detection
               </p>
             </div>
@@ -195,7 +195,7 @@ const UploadModal = ({ isOpen, onClose, onUploadSuccess }) => {
           </button>
         </div>
 
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           {/* Error Message */}
           {error && (
             <div className="mb-4 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700 dark:border-red-900/40 dark:bg-red-950/40 dark:text-red-300">
@@ -320,10 +320,10 @@ const UploadModal = ({ isOpen, onClose, onUploadSuccess }) => {
                 id="upload-category-select"
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="mt-1.5 block w-full rounded-xl border border-gray-200 bg-gray-50/50 px-3 py-2.5 text-sm text-gray-900 transition focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                className="mt-1.5 block w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:bg-slate-800"
               >
                 {config.defaultCategories.map((cat) => (
-                  <option key={cat} value={cat}>
+                  <option key={cat} value={cat} className="bg-white text-gray-900 dark:bg-slate-800 dark:text-white">
                     {cat}
                   </option>
                 ))}
@@ -348,25 +348,25 @@ const UploadModal = ({ isOpen, onClose, onUploadSuccess }) => {
           )}
 
           {/* Actions */}
-          <div className="mt-6 flex items-center justify-between border-t border-gray-100 pt-4 dark:border-slate-800">
+          <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between border-t border-gray-100 pt-4 dark:border-slate-800">
             <button
               id="btn-cancel-upload"
               type="button"
               onClick={handleClose}
               disabled={isUploading || isAnalyzing}
-              className="rounded-xl border border-gray-200 px-4 py-2.5 text-xs font-semibold text-gray-600 transition hover:bg-gray-50 disabled:opacity-50 dark:border-slate-700 dark:text-gray-300 dark:hover:bg-slate-800"
+              className="w-full sm:w-auto rounded-xl border border-gray-200 px-4 py-2.5 text-xs font-semibold text-gray-600 transition hover:bg-gray-50 disabled:opacity-50 dark:border-slate-700 dark:text-gray-300 dark:hover:bg-slate-800 text-center"
             >
               Cancel
             </button>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
               {/* AI Understanding Flow Trigger (Primary Action) */}
               <button
                 id="btn-analyze-with-ai"
                 type="button"
                 onClick={handleAnalyzeWithAI}
                 disabled={!file || isUploading || isHashing || isAnalyzing}
-                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-700 px-5 py-2.5 text-xs font-semibold text-white shadow-md shadow-indigo-600/25 transition hover:from-indigo-500 hover:to-purple-600 disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-700 px-4 sm:px-5 py-2.5 text-xs font-semibold text-white shadow-md shadow-indigo-600/25 transition hover:from-indigo-500 hover:to-purple-600 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isAnalyzing ? (
                   <>
@@ -376,7 +376,7 @@ const UploadModal = ({ isOpen, onClose, onUploadSuccess }) => {
                 ) : (
                   <>
                     <Sparkles className="h-4 w-4" />
-                    <span>Analyze with AI & Review</span>
+                    <span>Analyze with AI</span>
                   </>
                 )}
               </button>
@@ -387,7 +387,7 @@ const UploadModal = ({ isOpen, onClose, onUploadSuccess }) => {
                 type="button"
                 onClick={() => handleExecuteUpload()}
                 disabled={!file || isUploading || isHashing || isAnalyzing}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-xs font-semibold text-gray-700 transition hover:bg-gray-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-gray-200 dark:hover:bg-slate-700"
+                className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-xs font-semibold text-gray-700 transition hover:bg-gray-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-gray-200 dark:hover:bg-slate-700"
               >
                 <span>Direct Upload</span>
               </button>

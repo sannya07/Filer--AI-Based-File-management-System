@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { FolderKanban, Sparkles, Mail, Lock, Eye, EyeOff, AlertCircle, ArrowRight } from 'lucide-react';
+import ThemeToggle from '../../components/ThemeToggle/ThemeToggle';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -20,8 +21,14 @@ const Login = () => {
     e.preventDefault();
     setError('');
 
-    if (!email || !password) {
+    const trimmedEmail = email.trim().toLowerCase();
+    if (!trimmedEmail || !password) {
       setError('Please fill in all fields.');
+      return;
+    }
+
+    if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(trimmedEmail)) {
+      setError('Please enter a valid email address.');
       return;
     }
 
@@ -40,23 +47,27 @@ const Login = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-indigo-50/30 to-purple-50/40 p-4 sm:p-6 lg:p-8">
+    <div className="relative flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-indigo-50/30 to-purple-50/40 p-4 sm:p-6 lg:p-8 transition-colors dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950/40">
+      <div className="absolute top-4 right-4 sm:top-6 sm:right-6">
+        <ThemeToggle id="btn-theme-toggle-login" />
+      </div>
+
       <div className="w-full max-w-md">
         {/* Brand Header */}
         <div className="mb-8 text-center">
           <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30">
             <FolderKanban className="h-6 w-6" />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
-            Welcome to FILER <span className="text-indigo-600">AI</span>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl dark:text-white">
+            Welcome to FILER <span className="text-indigo-600 dark:text-indigo-400">AI</span>
           </h1>
-          <p className="mt-2 text-sm text-gray-600">
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
             Sign in to access your intelligent file workspace
           </p>
         </div>
 
         {/* Card */}
-        <div className="rounded-2xl border border-gray-100 bg-white/95 p-6 shadow-xl shadow-slate-200/50 backdrop-blur-xl sm:p-8">
+        <div className="rounded-2xl border border-gray-100 bg-white/95 p-6 shadow-xl shadow-slate-200/50 backdrop-blur-xl sm:p-8 dark:border-slate-800 dark:bg-slate-900/95 dark:shadow-none">
           {error && (
             <div
               id="login-error-alert"

@@ -453,11 +453,17 @@ const CategoryTree = ({
                   <select
                     value={newCatParentId}
                     onChange={(e) => setNewCatParentId(e.target.value)}
-                    className="mt-1 block w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-900 transition focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                    className="mt-1 block w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-900 transition focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:bg-slate-800"
                   >
-                    <option value="">None (Top-Level Category)</option>
+                    <option value="" className="bg-white text-gray-900 dark:bg-slate-800 dark:text-white">
+                      None (Top-Level Category)
+                    </option>
                     {tree.map((node) => (
-                      <option key={node._id} value={node._id}>
+                      <option
+                        key={node._id}
+                        value={node._id}
+                        className="bg-white text-gray-900 dark:bg-slate-800 dark:text-white"
+                      >
                         {node.name}
                       </option>
                     ))}
@@ -474,7 +480,7 @@ const CategoryTree = ({
                     placeholder="e.g. Next.js, Financials, Travel"
                     value={newCatName}
                     onChange={(e) => setNewCatName(e.target.value)}
-                    className="mt-1 block w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-900 transition focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                    className="mt-1 block w-full rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-xs text-gray-900 transition focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:bg-slate-800"
                     autoFocus
                     required
                   />

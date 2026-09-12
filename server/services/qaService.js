@@ -36,7 +36,9 @@ const generateGroundedFallbackAnswer = (question, selectedChunks, fileName) => {
   const scoredSentences = sentences.map((sentence) => {
     const sLower = sentence.toLowerCase();
     const matched = queryKeywords.filter((kw) => {
-      const regex = new RegExp(`\\b${kw}\\b`, 'i');
+      const stem = kw.replace(/(?:s|es|ed|ing)$/, '');
+      const pattern = stem.length >= 3 ? `\\b${stem}[a-z]*\\b` : `\\b${kw}\\b`;
+      const regex = new RegExp(pattern, 'i');
       return regex.test(sLower);
     });
     return {
@@ -63,11 +65,26 @@ const generateGroundedFallbackAnswer = (question, selectedChunks, fileName) => {
     return `I cannot find the answer to this question in the provided document ("${fileName}"). The document does not contain information regarding "${question}".`;
   }
 
-  // Sort sentences by matched keyword count descending
-  relevantSentences.sort((a, b) => b.matchedCount - a.matchedCount);
+  // Greedy coverage selection: prioritize sentences that cover new query keywords
+  const selectedSentences = [];
+  const coveredKeywords = new Set();
+  const remaining = [...relevantSentences];
 
-  // Synthesize answer from top matching sentences
-  const bestSentences = relevantSentences.slice(0, 3).map((s) => s.sentence).join(' ');
+  while (selectedSentences.length < 3 && remaining.length > 0) {
+    remaining.sort((a, b) => {
+      const newA = a.matchedKeywords.filter((k) => !coveredKeywords.has(k)).length;
+      const newB = b.matchedKeywords.filter((k) => !coveredKeywords.has(k)).length;
+      if (newB !== newA) return newB - newA;
+      return b.matchedCount - a.matchedCount;
+    });
+
+    const best = remaining.shift();
+    if (!best) break;
+    selectedSentences.push(best.sentence);
+    best.matchedKeywords.forEach((k) => coveredKeywords.add(k));
+  }
+
+  const bestSentences = selectedSentences.join(' ');
   return `According to the document ("${fileName}"): ${bestSentences}`;
 };
 

@@ -7,7 +7,12 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Please provide a name'],
       trim: true,
-      maxlength: [100, 'Name cannot exceed 100 characters']
+      minlength: [2, 'Name must be at least 2 characters long'],
+      maxlength: [50, 'Name cannot exceed 50 characters'],
+      match: [
+        /^[a-zA-Z\s'-]+$/,
+        'Name can only contain letters, spaces, hyphens, and apostrophes'
+      ]
     },
     email: {
       type: String,
@@ -15,8 +20,9 @@ const userSchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
       trim: true,
+      maxlength: [254, 'Email cannot exceed 254 characters'],
       match: [
-        /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
+        /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
         'Please provide a valid email address'
       ]
     },

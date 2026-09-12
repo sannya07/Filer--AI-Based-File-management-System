@@ -13,6 +13,7 @@ import {
   Image as ImageIcon
 } from 'lucide-react';
 import AskFileDialog from '../AskFileDialog/AskFileDialog';
+import { triggerDownload } from '../../utils/downloadUtil';
 
 const getQuickIcon = (fileName) => {
   const ext = fileName?.split('.').pop()?.toLowerCase();
@@ -141,20 +142,6 @@ const ImportantFilesShelf = ({
                     <Pin className="h-3.5 w-3.5" />
                   </button>
 
-                  {/* Ask AI Button */}
-                  <button
-                    id={`btn-shelf-ask-${file._id}`}
-                    type="button"
-                    onClick={() => {
-                      if (onFileAccessed) onFileAccessed(file._id);
-                      setSelectedFileForAsk(file);
-                    }}
-                    title="Ask Your File (AI Q&A)"
-                    className="inline-flex h-7 w-7 items-center justify-center rounded-lg text-indigo-600 transition hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-slate-800"
-                  >
-                    <Sparkles className="h-3.5 w-3.5" />
-                  </button>
-
                   {/* Open external view */}
                   <a
                     href={file.cloudinaryUrl}
@@ -170,17 +157,18 @@ const ImportantFilesShelf = ({
                   </a>
 
                   {/* Download */}
-                  <a
-                    href={file.cloudinaryUrl}
-                    download={file.fileName}
+                  <button
+                    type="button"
+                    id={`btn-shelf-download-${file._id}`}
                     onClick={() => {
                       if (onFileAccessed) onFileAccessed(file._id);
+                      triggerDownload(file.cloudinaryUrl, file.fileName);
                     }}
                     title="Download document"
                     className="inline-flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-slate-800 dark:hover:text-gray-300"
                   >
                     <Download className="h-3.5 w-3.5" />
-                  </a>
+                  </button>
                 </div>
 
                 <button

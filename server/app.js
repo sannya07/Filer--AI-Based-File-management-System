@@ -16,11 +16,21 @@ const categoryRoutes = require('./routes/categoryRoutes');
 const searchRoutes = require('./routes/searchRoutes');
 const shareRoutes = require('./routes/shareRoutes');
 
-// Health Check Endpoint
+// Root & Health Check Endpoints
+app.get('/', (req, res) => {
+  res.status(200).json({
+    status: 'success',
+    service: 'FILER AI Backend Server',
+    uptime: `${Math.floor(process.uptime())}s`,
+    timestamp: new Date().toISOString()
+  });
+});
+
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     status: 'success',
-    message: 'FILER AI API is running',
+    service: 'FILER AI Backend Server',
+    uptime: `${Math.floor(process.uptime())}s`,
     timestamp: new Date().toISOString()
   });
 });

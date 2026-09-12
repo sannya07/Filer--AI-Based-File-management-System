@@ -1,5 +1,5 @@
 const path = require('path');
-const pdfParse = require('pdf-parse');
+const pdfParseModule = require('pdf-parse');
 const mammoth = require('mammoth');
 
 /**
@@ -18,8 +18,18 @@ const extractTextFromBuffer = async (buffer, originalName) => {
 
   try {
     if (ext === '.pdf') {
-      const pdfData = await pdfParse(buffer);
-      extractedText = pdfData.text || '';
+      if (typeof pdfParseModule === 'function') {
+        const pdfData = await pdfParseModule(buffer);
+        extractedText = pdfData.text || '';
+      } else if (pdfParseModule.PDFParse) {
+        const parser = new pdfParseModule.PDFParse({ data: buffer });
+        try {
+          const result = await parser.getText();
+          extractedText = result.text || '';
+        } finally {
+          await parser.destroy();
+        }
+      }
     } else if (ext === '.docx' || ext === '.doc') {
       const docxData = await mammoth.extractRawText({ buffer });
       extractedText = docxData.value || '';

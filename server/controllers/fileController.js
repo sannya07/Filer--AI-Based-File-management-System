@@ -388,6 +388,63 @@ const recordFileAccess = async (req, res, next) => {
   }
 };
 
+/**
+ * @desc    Rename a file (PRD FR-13)
+ * @route   PATCH /api/files/:id/rename
+ * @access  Private
+ */
+const renameFile = async (req, res, next) => {
+  try {
+    const { newName } = req.body;
+
+    if (!newName || !newName.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'New file name is required.'
+      });
+    }
+
+    const file = await File.findOne({
+      _id: req.params.id,
+      ownerId: req.user._id
+    });
+
+    if (!file) {
+      return res.status(404).json({
+        success: false,
+        message: 'File not found.'
+      });
+    }
+
+    // Preserve original extension if user omitted it
+    let updatedName = newName.trim();
+    const originalExt = path.extname(file.fileName);
+    if (originalExt && !path.extname(updatedName)) {
+      updatedName = `${updatedName}${originalExt}`;
+    }
+
+    file.fileName = updatedName;
+    file.lastAccessed = new Date();
+    await file.save();
+
+    // Invalidate Trie cache for this user so search picks up the new name instantly
+    try {
+      const { invalidateUserTrie } = require('./searchController');
+      invalidateUserTrie(req.user._id);
+    } catch {
+      // Non-critical
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'File renamed successfully',
+      file
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   checkDuplicate,
   uploadFile,
@@ -397,5 +454,6 @@ module.exports = {
   askFile,
   getImportantFiles,
   togglePinFile,
-  recordFileAccess
+  recordFileAccess,
+  renameFile
 };

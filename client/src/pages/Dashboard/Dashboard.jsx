@@ -162,6 +162,21 @@ const Dashboard = () => {
     }
   };
 
+  // Rename File callback (PRD FR-13)
+  const handleRenameFile = async (fileId, newName) => {
+    try {
+      const res = await fileService.renameFile(fileId, newName);
+      if (res.success) {
+        showToast(`File renamed to "${res.file.fileName}"`);
+        await fetchFiles();
+        await fetchImportantFiles();
+      }
+    } catch (error) {
+      console.error('Failed to rename file:', error);
+      showToast(error.response?.data?.message || 'Failed to rename file.');
+    }
+  };
+
   // Category Tree Actions
   const handleCreateCategory = async (data) => {
     const res = await categoryService.createCategory(data);
@@ -438,6 +453,7 @@ const Dashboard = () => {
                     onDelete={handleDeleteFile}
                     onMove={handleMoveFile}
                     onTogglePin={handleTogglePin}
+                    onRename={handleRenameFile}
                     categoryTree={categoryTree}
                   />
                 ))}

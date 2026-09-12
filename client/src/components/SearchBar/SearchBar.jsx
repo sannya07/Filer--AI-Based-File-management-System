@@ -184,7 +184,7 @@ const SearchBar = ({
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           autoComplete="off"
-          className="w-full rounded-2xl border border-gray-200 bg-white py-2.5 pl-10 pr-9 text-xs text-gray-900 shadow-sm transition placeholder:text-gray-400 focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-800 dark:bg-slate-900 dark:text-white dark:placeholder:text-gray-500"
+          className="w-full rounded-2xl border border-gray-200 bg-white py-2.5 pl-10 pr-9 text-xs text-gray-900 shadow-sm transition placeholder:text-gray-400 focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-800 dark:bg-slate-900 dark:text-white dark:placeholder:text-gray-500 dark:focus:bg-slate-900"
         />
 
         {searchQuery && (

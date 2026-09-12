@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import shareService from '../../services/shareService';
 import { formatFileSize } from '../../utils/hashUtil';
+import { triggerDownload } from '../../utils/downloadUtil';
+import ThemeToggle from '../../components/ThemeToggle/ThemeToggle';
 import {
   FileText,
   Clock,
@@ -26,6 +28,17 @@ const SharedFile = () => {
   const [shareLink, setShareLink] = useState(null);
   const [errorStatus, setErrorStatus] = useState(null); // 'expired' | 'revoked' | 'not_found' | null
   const [errorMessage, setErrorMessage] = useState('');
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const handleDownload = async () => {
+    if (!file?.cloudinaryUrl || isDownloading) return;
+    try {
+      setIsDownloading(true);
+      await triggerDownload(file.cloudinaryUrl, file.fileName);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   useEffect(() => {
     const fetchSharedDocument = async () => {
@@ -83,6 +96,7 @@ const SharedFile = () => {
           </Link>
 
           <div className="flex items-center gap-3">
+            <ThemeToggle id="btn-theme-toggle-share" />
             <Link
               to="/login"
               className="rounded-xl border border-gray-200 px-3.5 py-1.5 text-xs font-semibold text-gray-700 transition hover:bg-gray-50 dark:border-slate-700 dark:text-gray-200 dark:hover:bg-slate-800"
@@ -247,15 +261,20 @@ const SharedFile = () => {
                 </a>
 
                 {!shareLink?.viewOnly ? (
-                  <a
-                    href={file.cloudinaryUrl}
-                    download={file.fileName}
+                  <button
+                    type="button"
+                    onClick={handleDownload}
+                    disabled={isDownloading}
                     id="btn-public-download"
-                    className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-2.5 text-xs font-semibold text-white shadow-md shadow-indigo-600/25 transition hover:bg-indigo-500"
+                    className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-2.5 text-xs font-semibold text-white shadow-md shadow-indigo-600/25 transition hover:bg-indigo-500 active:scale-95 disabled:opacity-75 disabled:cursor-wait"
                   >
-                    <Download className="h-4 w-4" />
-                    <span>Download Original Document</span>
-                  </a>
+                    {isDownloading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Download className="h-4 w-4" />
+                    )}
+                    <span>{isDownloading ? 'Downloading...' : 'Download Original Document'}</span>
+                  </button>
                 ) : (
                   <div
                     id="view-only-indicator"

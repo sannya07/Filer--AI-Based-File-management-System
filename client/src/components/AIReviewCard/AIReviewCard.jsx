@@ -15,16 +15,25 @@ import {
   Trash2
 } from 'lucide-react';
 
+const cleanUnicode = (str) => {
+  if (!str) return '';
+  return String(str)
+    .replace(/[\u202F\u00A0\u2000-\u200B\uFEFF]/g, ' ')
+    .replace(/â€¯/g, ' ')
+    .replace(/â€“|â€”/g, '-')
+    .trim();
+};
+
 const AIReviewCard = ({ file, aiData, onAccept, onReject, isUploading }) => {
-  const [summary, setSummary] = useState(aiData.summary || '');
-  const [description, setDescription] = useState(aiData.description || '');
+  const [summary, setSummary] = useState(cleanUnicode(aiData.summary) || '');
+  const [description, setDescription] = useState(cleanUnicode(aiData.description) || '');
   const [category, setCategory] = useState(aiData.category || 'Others');
   const [tags, setTags] = useState(aiData.tags || []);
   const [newTagInput, setNewTagInput] = useState('');
 
   const handleAddTag = (e) => {
     e.preventDefault();
-    const clean = newTagInput.trim().toLowerCase();
+    const clean = cleanUnicode(newTagInput).trim().toLowerCase();
     if (clean && !tags.includes(clean)) {
       setTags([...tags, clean]);
       setNewTagInput('');
@@ -37,12 +46,12 @@ const AIReviewCard = ({ file, aiData, onAccept, onReject, isUploading }) => {
 
   const handleAccept = () => {
     onAccept({
-      summary,
-      description,
+      summary: cleanUnicode(summary),
+      description: cleanUnicode(description),
       category,
       tags,
       confidence: aiData.confidence,
-      reasoning: aiData.reasoning
+      reasoning: cleanUnicode(aiData.reasoning)
     });
   };
 
@@ -95,7 +104,7 @@ const AIReviewCard = ({ file, aiData, onAccept, onReject, isUploading }) => {
               </div>
               <div>
                 <p className="text-sm font-bold text-gray-900 dark:text-white">
-                  {file.name}
+                  {cleanUnicode(file.name)}
                 </p>
                 <p className="text-xs text-gray-500">{formatFileSize(file.size)}</p>
               </div>
@@ -118,7 +127,7 @@ const AIReviewCard = ({ file, aiData, onAccept, onReject, isUploading }) => {
                     Why this category? (Explainable AI)
                   </h4>
                   <p className="mt-0.5 text-xs text-indigo-800/90 dark:text-indigo-300/90">
-                    {aiData.reasoning}
+                    {cleanUnicode(aiData.reasoning)}
                   </p>
                 </div>
               </div>
@@ -138,10 +147,10 @@ const AIReviewCard = ({ file, aiData, onAccept, onReject, isUploading }) => {
               id="review-category-select"
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className="mt-1.5 block w-full rounded-xl border border-gray-200 bg-gray-50/50 px-3.5 py-2.5 text-sm font-medium text-gray-900 transition focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+              className="mt-1.5 block w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm font-medium text-gray-900 transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:bg-slate-800"
             >
               {config.defaultCategories.map((cat) => (
-                <option key={cat} value={cat}>
+                <option key={cat} value={cat} className="bg-white text-gray-900 dark:bg-slate-800 dark:text-white">
                   {cat} {cat === aiData.category ? '(AI Pick)' : ''}
                 </option>
               ))}
@@ -165,7 +174,7 @@ const AIReviewCard = ({ file, aiData, onAccept, onReject, isUploading }) => {
               rows={3}
               value={summary}
               onChange={(e) => setSummary(e.target.value)}
-              className="mt-1.5 block w-full rounded-xl border border-gray-200 bg-gray-50/50 p-3 text-xs leading-relaxed text-gray-900 transition focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+              className="mt-1.5 block w-full rounded-xl border border-gray-200 bg-white p-3 text-xs leading-relaxed text-gray-900 transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:bg-slate-800"
             />
           </div>
 
@@ -183,7 +192,7 @@ const AIReviewCard = ({ file, aiData, onAccept, onReject, isUploading }) => {
               id="review-description-input"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="mt-1.5 block w-full rounded-xl border border-gray-200 bg-gray-50/50 px-3.5 py-2 text-xs text-gray-900 transition focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+              className="mt-1.5 block w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-xs text-gray-900 transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:bg-slate-800"
             />
           </div>
 

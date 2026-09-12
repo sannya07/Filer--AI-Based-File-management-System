@@ -88,6 +88,16 @@ const fileService = {
   async recordFileAccess(id) {
     const response = await api.post(`/files/${id}/access`);
     return response.data;
+  },
+
+  /**
+   * Rename a file (PRD FR-13)
+   * @param {string} id - File ID
+   * @param {string} newName - New name
+   */
+  async renameFile(id, newName) {
+    const response = await api.patch(`/files/${id}/rename`, { newName });
+    return response.data;
   }
 };
 
