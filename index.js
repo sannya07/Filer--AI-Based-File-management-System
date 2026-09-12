@@ -1,3 +1,3 @@
-const app = require('./server/app');
+const handler = require('./api/index');
 
-module.exports = app;
+module.exports = handler;

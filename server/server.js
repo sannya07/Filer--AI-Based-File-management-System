@@ -22,4 +22,5 @@ if (require.main === module) {
   startServer();
 }
 
-module.exports = { startServer };
+module.exports = app;
+module.exports.startServer = startServer;

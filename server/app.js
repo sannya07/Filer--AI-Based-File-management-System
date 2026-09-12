@@ -21,8 +21,13 @@ const shareRoutes = require('./routes/shareRoutes');
 
 // Vercel Serverless Path Normalization Middleware
 app.use((req, res, next) => {
-  const matchedPath = req.headers['x-matched-path'] || req.headers['x-forwarded-uri'];
-  if (matchedPath && (req.url === '/api/index.js' || req.url === '/api/index' || req.url === '/api')) {
+  const matchedPath =
+    req.headers['x-matched-path'] ||
+    req.headers['x-forwarded-uri'] ||
+    req.headers['x-original-url'] ||
+    req.headers['x-rewrite-url'];
+
+  if (matchedPath && (req.url === '/api/index.js' || req.url === '/api/index' || req.url === '/api' || req.url === '/')) {
     req.url = matchedPath;
   }
   next();
