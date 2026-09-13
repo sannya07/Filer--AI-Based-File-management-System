@@ -4,7 +4,38 @@
 
 @layer base {
   body {
-    @apply antialiased bg-gray-50 text-gray-900 min-h-screen font-sans dark:bg-slate-950 dark:text-slate-100 transition-colors duration-200;
+    @apply antialiased bg-slate-50 text-slate-900 min-h-screen font-sans dark:bg-[#090d16] dark:text-slate-100 transition-colors duration-200;
+  }
+
+  /* Custom selection */
+  ::selection {
+    @apply bg-indigo-500/30 text-indigo-900 dark:bg-indigo-500/40 dark:text-indigo-200;
+  }
+
+  /* Chrome Autofill fix for Dark Mode */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover, 
+  input:-webkit-autofill:focus, 
+  input:-webkit-autofill:active {
+    transition: background-color 5000s ease-in-out 0s, color 5000s ease-in-out 0s;
+  }
+
+  .dark input:-webkit-autofill {
+    -webkit-text-fill-color: #f1f5f9 !important;
+    caret-color: #f1f5f9 !important;
+  }
+
+  /* Custom Sleek Scrollbars */
+  ::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-slate-300/80 hover:bg-slate-400 dark:bg-slate-700/60 dark:hover:bg-slate-600;
   }
 }
-
