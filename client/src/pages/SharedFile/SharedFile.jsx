@@ -108,32 +108,32 @@ const SharedFile = () => {
     <div className="min-h-screen bg-slate-50 text-slate-900 transition-colors dark:bg-slate-950 dark:text-slate-100 flex flex-col justify-between">
       {/* Public Navbar */}
       <header className="border-b border-gray-200/80 bg-white/80 backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-900/80 sticky top-0 z-40">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3.5 sm:px-6">
-          <Link to="/" className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/20">
-              <Sparkles className="h-5 w-5" />
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-3.5 sm:px-6 py-3">
+          <Link to="/" className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+            <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/20">
+              <Sparkles className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
             <div>
-              <span className="text-base font-black tracking-tight text-gray-900 dark:text-white">
+              <span className="text-sm sm:text-base font-black tracking-tight text-gray-900 dark:text-white">
                 FILER<span className="text-indigo-600 dark:text-indigo-400">AI</span>
               </span>
-              <span className="ml-1.5 rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-bold text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300">
+              <span className="hidden sm:inline-flex ml-1.5 rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-bold text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300">
                 Public Share
               </span>
             </div>
           </Link>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3">
             <ThemeToggle id="btn-theme-toggle-share" />
             <Link
               to="/login"
-              className="rounded-xl border border-gray-200 px-3.5 py-1.5 text-xs font-semibold text-gray-700 transition hover:bg-gray-50 dark:border-slate-700 dark:text-gray-200 dark:hover:bg-slate-800"
+              className="rounded-xl border border-gray-200 px-2.5 sm:px-3.5 py-1.5 text-xs font-semibold text-gray-700 transition hover:bg-gray-50 dark:border-slate-700 dark:text-gray-200 dark:hover:bg-slate-800"
             >
               Sign In
             </Link>
             <Link
               to="/signup"
-              className="rounded-xl bg-indigo-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-indigo-500"
+              className="rounded-xl bg-indigo-600 px-3 sm:px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-indigo-500"
             >
               Get Started
             </Link>

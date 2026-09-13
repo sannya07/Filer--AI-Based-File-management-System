@@ -15,23 +15,23 @@ const Navbar = () => {
 
   return (
     <header className="sticky top-0 z-40 border-b border-gray-200 bg-white/80 backdrop-blur-md transition-colors dark:border-slate-800 dark:bg-slate-900/80">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-3.5 sm:px-6 lg:px-8">
         {/* Brand */}
         <Link
           to={user ? "/dashboard" : "/"}
           id="navbar-brand-link"
-          className="flex items-center gap-2.5 transition hover:opacity-90"
+          className="flex items-center gap-2 sm:gap-2.5 transition hover:opacity-90 shrink-0"
         >
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-500 text-white shadow-md shadow-indigo-500/25">
-            <FolderKanban className="h-5 w-5" />
+          <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-500 text-white shadow-md shadow-indigo-500/25">
+            <FolderKanban className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
           </div>
           <div>
-            <div className="flex items-center gap-1">
-              <span className="text-lg font-bold tracking-tight text-gray-900 dark:text-white">
+            <div className="flex items-center gap-1 sm:gap-1.5">
+              <span className="text-base sm:text-lg font-bold tracking-tight text-gray-900 dark:text-white">
                 FILER
               </span>
-              <span className="inline-flex items-center rounded-md bg-indigo-50 px-1.5 py-0.5 text-xs font-semibold text-indigo-700 ring-1 ring-inset ring-indigo-700/10 dark:bg-indigo-950/60 dark:text-indigo-300">
-                <Sparkles className="mr-0.5 h-3 w-3" /> AI
+              <span className="inline-flex items-center rounded-md bg-indigo-50 px-1.5 py-0.5 text-[10px] sm:text-xs font-semibold text-indigo-700 ring-1 ring-inset ring-indigo-700/10 dark:bg-indigo-950/60 dark:text-indigo-300">
+                <Sparkles className="mr-0.5 h-2.5 w-2.5 sm:h-3 sm:w-3" /> AI
               </span>
             </div>
           </div>
@@ -42,7 +42,7 @@ const Navbar = () => {
           <ThemeToggle id="btn-theme-toggle" />
 
           {user ? (
-            <div className="flex items-center gap-1.5 sm:gap-3">
+            <div className="flex items-center gap-1.5 sm:gap-2.5">
               <div
                 id="user-profile-badge"
                 title={`${user.name} (${user.email})`}
@@ -72,18 +72,18 @@ const Navbar = () => {
               </button>
             </div>
           ) : (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 sm:gap-3">
               <Link
                 to="/login"
                 id="navbar-login-link"
-                className="rounded-lg px-3.5 py-2 text-sm font-medium text-gray-700 transition hover:text-indigo-600 dark:text-gray-300 dark:hover:text-white"
+                className="rounded-lg px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-gray-700 transition hover:text-indigo-600 dark:text-gray-300 dark:hover:text-white"
               >
                 Sign in
               </Link>
               <Link
                 to="/signup"
                 id="navbar-signup-link"
-                className="rounded-lg bg-indigo-600 px-3.5 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500"
+                className="rounded-lg bg-indigo-600 px-3 sm:px-3.5 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500"
               >
                 Get Started
               </Link>
