@@ -464,6 +464,29 @@ const renameFile = async (req, res, next) => {
   }
 };
 
+const createFallbackBuffer = (fileName, file) => {
+  const ext = path.extname(fileName || '').toLowerCase();
+  const title = (file.fileName || fileName || 'Document').replace(/[()]/g, '');
+  const summary = (file.summary || file.description || 'Document uploaded in development mode.').replace(/[()]/g, '').substring(0, 100);
+
+  if (ext === '.pdf') {
+    const content = `BT /F1 18 Tf 50 720 Td (${title}) Tj /F1 12 Tf 0 -30 Td (${summary}) Tj ET`;
+    const streamLength = Buffer.byteLength(content);
+    return {
+      contentType: 'application/pdf',
+      buffer: Buffer.from(
+        `%PDF-1.4\n1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj\n2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj\n3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> >> >> /Contents 4 0 R >> endobj\n4 0 obj << /Length ${streamLength} >>\nstream\n${content}\nendstream\nendobj\nxref\n0 5\n0000000000 65535 f \n0000000009 00000 n \n0000000058 00000 n \n0000000115 00000 n \n0000000282 00000 n \ntrailer << /Size 5 /Root 1 0 R >>\nstartxref\n400\n%%EOF\n`
+      )
+    };
+  }
+
+  const textContent = `=== FILER AI: ${file.fileName} ===\n\nSummary: ${file.summary || file.description || 'Uploaded in development mode.'}\nCategory: ${file.category || 'General'}\nUploaded: ${file.uploadedAt || new Date().toISOString()}`;
+  return {
+    contentType: ext === '.txt' ? 'text/plain; charset=utf-8' : (MIME_TYPES[ext] || 'application/octet-stream'),
+    buffer: Buffer.from(textContent, 'utf-8')
+  };
+};
+
 /**
  * @desc    Directly download a user file with guaranteed original filename and MIME type
  * @route   GET /api/files/:id/download
@@ -490,6 +513,21 @@ const downloadFile = async (req, res, next) => {
     const ext = path.extname(file.fileName || '').toLowerCase();
     const contentType = MIME_TYPES[ext] || 'application/octet-stream';
     const fileName = file.fileName || 'document';
+
+    const isMockFile =
+      Boolean(file.publicId && file.publicId.startsWith('filer_mock_')) ||
+      Boolean(file.cloudinaryUrl && file.cloudinaryUrl.includes('/demo/image/upload/sample.jpg'));
+
+    if (isMockFile && ext !== '.jpg' && ext !== '.jpeg') {
+      const fallback = createFallbackBuffer(fileName, file);
+      res.setHeader('Content-Type', fallback.contentType);
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="${encodeURIComponent(fileName)}"; filename*=UTF-8''${encodeURIComponent(fileName)}`
+      );
+      res.setHeader('Content-Length', fallback.buffer.length);
+      return res.end(fallback.buffer);
+    }
 
     const response = await axios({
       method: 'GET',
@@ -535,6 +573,20 @@ const previewFile = async (req, res, next) => {
     const ext = path.extname(file.fileName || '').toLowerCase();
     const contentType = MIME_TYPES[ext] || 'application/octet-stream';
     const fileName = file.fileName || 'document';
+
+    const isMockFile =
+      Boolean(file.publicId && file.publicId.startsWith('filer_mock_')) ||
+      Boolean(file.cloudinaryUrl && file.cloudinaryUrl.includes('/demo/image/upload/sample.jpg'));
+
+    if (isMockFile && ext !== '.jpg' && ext !== '.jpeg') {
+      const fallback = createFallbackBuffer(fileName, file);
+      res.setHeader('Content-Type', fallback.contentType);
+      res.setHeader(
+        'Content-Disposition',
+        `inline; filename="${encodeURIComponent(fileName)}"; filename*=UTF-8''${encodeURIComponent(fileName)}`
+      );
+      return res.end(fallback.buffer);
+    }
 
     const response = await axios({
       method: 'GET',

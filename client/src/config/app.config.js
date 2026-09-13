@@ -2,8 +2,24 @@
  * Global client application configuration
  * Centralizes environment variables and application constants
  */
+const getAutoApiUrl = () => {
+  if (import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL !== 'http://localhost:5000/api') {
+    return import.meta.env.VITE_API_URL;
+  }
+
+  if (
+    typeof window !== 'undefined' &&
+    !window.location.hostname.includes('localhost') &&
+    !window.location.hostname.includes('127.0.0.1')
+  ) {
+    return 'https://filer-ai-backend.vercel.app/api';
+  }
+
+  return import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+};
+
 const config = {
-  apiUrl: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+  apiUrl: getAutoApiUrl(),
   appTitle: 'FILER AI',
   defaultCategories: [
     'Study Material',
