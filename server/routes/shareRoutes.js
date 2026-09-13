@@ -6,12 +6,14 @@ const {
   getFileShareLinks,
   revokeShareLink,
   downloadSharedFile,
-  previewSharedFile
+  previewSharedFile,
+  getSharedFileContent
 } = require('../controllers/shareController');
 const { protect } = require('../middleware/authMiddleware');
 
 // Public routes for viewing and downloading shared documents
 router.get('/:token', getSharedFile);
+router.get('/:token/content', getSharedFileContent);
 router.get('/:token/download', downloadSharedFile);
 router.get('/:token/preview', previewSharedFile);
 

@@ -2,6 +2,7 @@ const File = require('../models/File');
 const { generateHash } = require('../services/hashService');
 const { uploadBuffer, deleteResource } = require('../services/cloudinaryService');
 const { saveLocalBuffer, getFileBuffer } = require('../services/fileStorageService');
+const { extractTextFromBuffer, convertDocxToHtml } = require('../services/textExtractionService');
 const { answerFileQuestion } = require('../services/qaService');
 const { getTopImportantFiles } = require('../services/priorityQueueService');
 const path = require('path');
@@ -551,6 +552,16 @@ const downloadFile = async (req, res, next) => {
   }
 };
 
+const escapeHtml = (unsafe) => {
+  if (!unsafe) return '';
+  return String(unsafe)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+};
+
 /**
  * @desc    Directly preview a user file inline in the browser
  * @route   GET /api/files/:id/preview
@@ -574,33 +585,166 @@ const previewFile = async (req, res, next) => {
     const contentType = MIME_TYPES[ext] || 'application/octet-stream';
     const fileName = file.fileName || 'document';
 
-    const isMockFile =
-      Boolean(file.publicId && file.publicId.startsWith('filer_mock_')) ||
-      Boolean(file.cloudinaryUrl && file.cloudinaryUrl.includes('/demo/image/upload/sample.jpg'));
+    const isImage = ['.png', '.jpg', '.jpeg', '.webp', '.svg', '.gif'].includes(ext);
+    const isPdf = ext === '.pdf';
+    const isDocx = ext === '.docx' || ext === '.doc';
 
-    if (isMockFile && ext !== '.jpg' && ext !== '.jpeg') {
-      const fallback = createFallbackBuffer(fileName, file);
-      res.setHeader('Content-Type', fallback.contentType);
+    // If browser-native format (image or PDF), stream inline
+    if (isImage || isPdf) {
+      const isMockFile =
+        Boolean(file.publicId && file.publicId.startsWith('filer_mock_')) ||
+        Boolean(file.cloudinaryUrl && file.cloudinaryUrl.includes('/demo/image/upload/sample.jpg'));
+
+      if (isMockFile && ext !== '.jpg' && ext !== '.jpeg') {
+        const fallback = createFallbackBuffer(fileName, file);
+        res.setHeader('Content-Type', fallback.contentType);
+        res.setHeader(
+          'Content-Disposition',
+          `inline; filename="${encodeURIComponent(fileName)}"; filename*=UTF-8''${encodeURIComponent(fileName)}`
+        );
+        return res.end(fallback.buffer);
+      }
+
+      const response = await axios({
+        method: 'GET',
+        url: file.cloudinaryUrl,
+        responseType: 'stream'
+      });
+
+      res.setHeader('Content-Type', contentType);
       res.setHeader(
         'Content-Disposition',
         `inline; filename="${encodeURIComponent(fileName)}"; filename*=UTF-8''${encodeURIComponent(fileName)}`
       );
-      return res.end(fallback.buffer);
+
+      return response.data.pipe(res);
     }
 
-    const response = await axios({
-      method: 'GET',
-      url: file.cloudinaryUrl,
-      responseType: 'stream'
-    });
+    // For non-browser native formats (DOCX, TXT, CSV, etc.), serve clean HTML reader
+    let contentHtml = null;
+    let contentText = null;
 
-    res.setHeader('Content-Type', contentType);
-    res.setHeader(
-      'Content-Disposition',
-      `inline; filename="${encodeURIComponent(fileName)}"; filename*=UTF-8''${encodeURIComponent(fileName)}`
-    );
+    try {
+      const buffer = await getFileBuffer(file);
+      if (isDocx) {
+        contentHtml = await convertDocxToHtml(buffer);
+      }
+      contentText = await extractTextFromBuffer(buffer, fileName);
+    } catch (extractErr) {
+      console.warn('Buffer extraction for preview notice:', extractErr.message);
+      contentText = file.summary || file.description || 'Document text extracted during indexing.';
+    }
 
-    response.data.pipe(res);
+    const title = escapeHtml(file.fileName || 'Document');
+    const summary = file.summary ? escapeHtml(file.summary) : '';
+    const category = escapeHtml(file.category || 'General');
+    const sizeText = file.fileSize ? `${Math.round(file.fileSize / 1024)} KB` : '';
+
+    const htmlPage = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title} - FILER AI Document Viewer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090d16;
+      --card: #0f172a;
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #6366f1;
+      --accent-glow: rgba(99, 102, 241, 0.12);
+      --reader-bg: #0b1120;
+      --reader-border: #1e293b;
+    }
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #f8fafc;
+        --card: #ffffff;
+        --card-border: #e2e8f0;
+        --text: #0f172a;
+        --text-muted: #64748b;
+        --accent: #4f46e5;
+        --accent-glow: rgba(79, 70, 229, 0.08);
+        --reader-bg: #ffffff;
+        --reader-border: #e2e8f0;
+      }
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding-bottom: 4rem;
+      min-height: 100vh;
+    }
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: var(--card);
+      border-bottom: 1px solid var(--card-border);
+      backdrop-filter: blur(12px);
+      padding: 0.85rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .brand { font-weight: 800; font-size: 1.15rem; letter-spacing: -0.02em; }
+    .brand span { color: var(--accent); }
+    .container { max-width: 860px; margin: 2rem auto; padding: 0 1.25rem; }
+    .header-card {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 1.25rem;
+      padding: 1.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .doc-title { font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem; word-break: break-word; }
+    .doc-meta { display: flex; gap: 0.85rem; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem; }
+    .doc-summary { background: var(--accent-glow); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 0.85rem; padding: 1rem 1.25rem; font-size: 0.875rem; }
+    .reader-card {
+      background: var(--reader-bg);
+      border: 1px solid var(--reader-border);
+      border-radius: 1.25rem;
+      padding: 2.5rem;
+      min-height: 420px;
+    }
+    .prose-content { font-size: 1.025rem; line-height: 1.8; color: var(--text); }
+    .prose-content h1, .prose-content h2, .prose-content h3 { margin-top: 1.5rem; margin-bottom: 0.75rem; }
+    .prose-content p { margin-bottom: 1rem; }
+    .prose-content ul, .prose-content ol { margin-left: 1.5rem; margin-bottom: 1rem; }
+    .pre-content { font-family: 'JetBrains Mono', monospace; font-size: 0.875rem; white-space: pre-wrap; word-break: break-word; }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <div class="brand">FILER<span>AI</span> Workspace Reader</div>
+  </div>
+  <main class="container">
+    <div class="header-card">
+      <h1 class="doc-title">${title}</h1>
+      <div class="doc-meta">
+        <span>Format: <strong>${ext ? ext.toUpperCase().replace('.', '') : 'DOC'}</strong></span>
+        ${sizeText ? `<span>•</span><span>Size: <strong>${sizeText}</strong></span>` : ''}
+        <span>•</span><span>Category: <strong>${category}</strong></span>
+      </div>
+      ${summary ? `<div class="doc-summary"><strong>AI Summary:</strong> ${summary}</div>` : ''}
+    </div>
+    <div class="reader-card">
+      ${contentHtml ? `<div class="prose-content">${contentHtml}</div>` : `<pre class="pre-content">${escapeHtml(contentText)}</pre>`}
+    </div>
+  </main>
+</body>
+</html>`;
+
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    return res.status(200).send(htmlPage);
   } catch (error) {
     next(error);
   }

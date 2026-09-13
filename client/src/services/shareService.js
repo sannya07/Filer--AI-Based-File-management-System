@@ -20,6 +20,15 @@ const shareService = {
   },
 
   /**
+   * Fetch public shared document content for in-page viewing
+   * @param {string} token
+   */
+  async getSharedFileContent(token) {
+    const response = await api.get(`/share/${token}/content`);
+    return response.data;
+  },
+
+  /**
    * Get active share links for a file (owner view)
    * @param {string} fileId
    */

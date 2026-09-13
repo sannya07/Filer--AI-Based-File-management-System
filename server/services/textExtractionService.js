@@ -97,6 +97,31 @@ const extractTextFromBuffer = async (buffer, originalName) => {
   return cleanedText || `File name: ${originalName}`;
 };
 
+/**
+ * Converts DOCX buffer into sanitized, semantic HTML for web preview
+ * @param {Buffer} buffer - File buffer
+ * @returns {Promise<string>} Semantic HTML string
+ */
+const convertDocxToHtml = async (buffer) => {
+  if (!buffer || !Buffer.isBuffer(buffer)) {
+    return '';
+  }
+
+  const mammoth = getMammoth();
+  if (!mammoth) {
+    return '';
+  }
+
+  try {
+    const result = await mammoth.convertToHtml({ buffer });
+    return result.value || '';
+  } catch (error) {
+    console.warn('DOCX to HTML conversion error:', error.message);
+    return '';
+  }
+};
+
 module.exports = {
-  extractTextFromBuffer
+  extractTextFromBuffer,
+  convertDocxToHtml
 };
