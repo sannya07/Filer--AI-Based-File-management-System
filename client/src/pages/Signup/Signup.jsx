@@ -80,7 +80,7 @@ const Signup = () => {
     try {
       setLoading(true);
       await register({ name: trimmedName, email: trimmedEmail, password });
-      navigate('/', { replace: true });
+      navigate('/dashboard', { replace: true });
     } catch (err) {
       console.error('Signup Error:', err);
       const message =

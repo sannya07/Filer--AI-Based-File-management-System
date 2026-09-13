@@ -7,6 +7,7 @@ import Login from './pages/Login/Login';
 import Signup from './pages/Signup/Signup';
 import Dashboard from './pages/Dashboard/Dashboard';
 import SharedFile from './pages/SharedFile/SharedFile';
+import Landing from './pages/Landing/Landing';
 
 function App() {
   return (
@@ -15,13 +16,14 @@ function App() {
         <Router>
           <Routes>
             {/* Public Routes */}
+            <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/share/:token" element={<SharedFile />} />
 
             {/* Protected Routes */}
             <Route element={<ProtectedRoute />}>
-              <Route path="/" element={<Dashboard />} />
+              <Route path="/dashboard" element={<Dashboard />} />
             </Route>
 
             {/* Fallback redirect */}

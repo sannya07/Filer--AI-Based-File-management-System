@@ -18,7 +18,7 @@ const Navbar = () => {
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Brand */}
         <Link
-          to="/"
+          to={user ? "/dashboard" : "/"}
           id="navbar-brand-link"
           className="flex items-center gap-2.5 transition hover:opacity-90"
         >
