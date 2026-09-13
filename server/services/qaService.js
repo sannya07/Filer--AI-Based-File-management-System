@@ -88,6 +88,27 @@ const generateGroundedFallbackAnswer = (question, selectedChunks, fileName) => {
   return `According to the document ("${fileName}"): ${bestSentences}`;
 };
 
+const FALLBACK_MODELS = [
+  'liquid/lfm-2.5-2.6b:free',
+  'nex-agi/nex-n2.5-mini:free',
+  'dots-studio/dots-3-note-preview:free',
+  'cohere/north-mini-code:free'
+];
+
+const getModelChain = () => {
+  const preferred = config.openRouter.model;
+  const chain = [];
+  if (preferred) {
+    chain.push(preferred);
+  }
+  for (const m of FALLBACK_MODELS) {
+    if (!chain.includes(m)) {
+      chain.push(m);
+    }
+  }
+  return chain;
+};
+
 /**
  * Answers a question on a single document with strict grounding
  * @param {Object} file - File metadata document
@@ -138,7 +159,7 @@ Question: ${question}
 Answer:`;
 
   // Check if OpenRouter is configured
-  const { apiKey, baseUrl, model } = config.openRouter;
+  const { apiKey, baseUrl } = config.openRouter;
   const isOpenRouterReady = Boolean(apiKey && apiKey !== 'your_openrouter_api_key');
 
   if (!isOpenRouterReady) {
@@ -153,62 +174,67 @@ Answer:`;
     };
   }
 
-  try {
-    // Build message thread with optional previous history
-    const messages = [
-      { role: 'system', content: systemPrompt },
-      ...history.slice(-4).map((m) => ({
-        role: m.role === 'user' ? 'user' : 'assistant',
-        content: m.content
-      })),
-      { role: 'user', content: userPrompt }
-    ];
+  // Build message thread with optional previous history
+  const messages = [
+    { role: 'system', content: systemPrompt },
+    ...history.slice(-4).map((m) => ({
+      role: m.role === 'user' ? 'user' : 'assistant',
+      content: m.content
+    })),
+    { role: 'user', content: userPrompt }
+  ];
 
-    const response = await axios.post(
-      `${baseUrl}/chat/completions`,
-      {
-        model,
-        messages,
-        temperature: 0.2,
-        max_tokens: 600
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://filer.ai',
-          'X-Title': 'FILER AI Ask Your File'
+  const modelChain = getModelChain();
+
+  for (const model of modelChain) {
+    try {
+      const response = await axios.post(
+        `${baseUrl}/chat/completions`,
+        {
+          model,
+          messages,
+          temperature: 0.1,
+          max_tokens: 500
         },
-        timeout: 18000
+        {
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+            'HTTP-Referer': 'https://filer.ai',
+            'X-Title': 'FILER AI Ask Your File'
+          },
+          timeout: 8000
+        }
+      );
+
+      const answer = response.data?.choices?.[0]?.message?.content?.trim();
+      if (answer && answer.length > 0) {
+        return {
+          answer,
+          sources: selectedChunks.map((c) => ({
+            chunkIndex: c.index,
+            text: c.text,
+            score: c.score
+          }))
+        };
       }
-    );
-
-    const answer = response.data?.choices?.[0]?.message?.content?.trim();
-    if (!answer) {
-      throw new Error('Empty response from OpenRouter');
+    } catch (error) {
+      const status = error.response?.status;
+      const errMsg = error.response?.data?.error?.message || error.message;
+      console.warn(`OpenRouter Q&A model ${model} failed (${status || 'error'}: ${errMsg}). Trying next fallback model in chain...`);
     }
-
-    return {
-      answer,
-      sources: selectedChunks.map((c) => ({
-        chunkIndex: c.index,
-        text: c.text,
-        score: c.score
-      }))
-    };
-  } catch (error) {
-    console.warn('OpenRouter Q&A call failed or rate-limited:', error.message);
-    console.log('Falling back to local grounded heuristic answer.');
-    const fallbackAnswer = generateGroundedFallbackAnswer(question, selectedChunks, file.fileName);
-    return {
-      answer: fallbackAnswer,
-      sources: selectedChunks.map((c) => ({
-        chunkIndex: c.index,
-        text: c.text,
-        score: c.score
-      }))
-    };
   }
+
+  console.warn('All OpenRouter models failed or rate-limited for Q&A. Falling back to local grounded heuristic answer.');
+  const fallbackAnswer = generateGroundedFallbackAnswer(question, selectedChunks, file.fileName);
+  return {
+    answer: fallbackAnswer,
+    sources: selectedChunks.map((c) => ({
+      chunkIndex: c.index,
+      text: c.text,
+      score: c.score
+    }))
+  };
 };
 
 module.exports = {

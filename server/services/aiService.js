@@ -99,8 +99,48 @@ const generateHeuristicAnalysis = (text, fileName) => {
   };
 };
 
+const FALLBACK_MODELS = [
+  'liquid/lfm-2.5-2.6b:free',
+  'nex-agi/nex-n2.5-mini:free',
+  'dots-studio/dots-3-note-preview:free',
+  'cohere/north-mini-code:free'
+];
+
+const getModelChain = () => {
+  const preferred = config.openRouter.model;
+  const chain = [];
+  if (preferred) {
+    chain.push(preferred);
+  }
+  for (const m of FALLBACK_MODELS) {
+    if (!chain.includes(m)) {
+      chain.push(m);
+    }
+  }
+  return chain;
+};
+
+const extractJsonFromResponse = (rawContent) => {
+  if (!rawContent) return null;
+  const cleaned = rawContent.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+  try {
+    return JSON.parse(cleaned);
+  } catch (e1) {
+    const firstBrace = cleaned.indexOf('{');
+    const lastBrace = cleaned.lastIndexOf('}');
+    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+      try {
+        return JSON.parse(cleaned.substring(firstBrace, lastBrace + 1));
+      } catch (e2) {
+        return null;
+      }
+    }
+    return null;
+  }
+};
+
 /**
- * Analyzes document text using OpenRouter LLM or fallback
+ * Analyzes document text using OpenRouter LLM with resilient multi-model fallback
  * @param {string} text - Extracted document text
  * @param {string} fileName - Original file name
  * @returns {Promise<{ summary, description, tags, category, confidence, reasoning }>}
@@ -133,61 +173,68 @@ Respond ONLY with a valid, raw JSON object (no markdown code fences, no extra te
   "reasoning": "A concise 1 to 2 sentence justification explaining why this category was selected."
 }`;
 
-  try {
-    const response = await axios.post(
-      `${config.openRouter.baseUrl}/chat/completions`,
-      {
-        model: config.openRouter.model,
-        messages: [
-          {
-            role: 'system',
-            content: 'You are an AI document analysis engine that only outputs strict, valid JSON.'
-          },
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        temperature: 0.2
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${config.openRouter.apiKey}`,
-          'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://filer.ai',
-          'X-Title': 'FILER AI'
+  const modelChain = getModelChain();
+
+  for (const model of modelChain) {
+    try {
+      const response = await axios.post(
+        `${config.openRouter.baseUrl}/chat/completions`,
+        {
+          model,
+          messages: [
+            {
+              role: 'system',
+              content: 'You are an AI document analysis engine that only outputs strict, valid JSON.'
+            },
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          temperature: 0.1,
+          max_tokens: 450
         },
-        timeout: 15000
+        {
+          headers: {
+            Authorization: `Bearer ${config.openRouter.apiKey}`,
+            'Content-Type': 'application/json',
+            'HTTP-Referer': 'https://filer.ai',
+            'X-Title': 'FILER AI'
+          },
+          timeout: 8000
+        }
+      );
+
+      const content = response.data?.choices?.[0]?.message?.content?.trim();
+      const parsed = extractJsonFromResponse(content);
+
+      if (!parsed || typeof parsed !== 'object') {
+        console.warn(`Model ${model} returned non-JSON response. Trying next model...`);
+        continue;
       }
-    );
 
-    const content = response.data?.choices?.[0]?.message?.content?.trim();
-    if (!content) {
-      throw new Error('Empty response from OpenRouter');
+      // Validate category is within allowed categories
+      const validatedCategory = DEFAULT_CATEGORIES.includes(parsed.category)
+        ? parsed.category
+        : 'Others';
+
+      return {
+        summary: parsed.summary || `${fileName} document overview.`,
+        description: parsed.description || `Document categorized as ${validatedCategory}.`,
+        tags: Array.isArray(parsed.tags) ? parsed.tags.map((t) => String(t).toLowerCase().trim()) : ['document'],
+        category: validatedCategory,
+        confidence: parsed.confidence || '90%',
+        reasoning: parsed.reasoning || 'Categorized based on document content analysis.'
+      };
+    } catch (error) {
+      const status = error.response?.status;
+      const errMsg = error.response?.data?.error?.message || error.message;
+      console.warn(`OpenRouter model ${model} failed (${status || 'error'}: ${errMsg}). Trying next fallback model in chain...`);
     }
-
-    // Clean any markdown formatting if present
-    const cleanJson = content.replace(/^```json\s*/i, '').replace(/\s*```$/i, '').trim();
-    const parsed = JSON.parse(cleanJson);
-
-    // Validate category is within allowed categories
-    const validatedCategory = DEFAULT_CATEGORIES.includes(parsed.category)
-      ? parsed.category
-      : 'Others';
-
-    return {
-      summary: parsed.summary || `${fileName} document overview.`,
-      description: parsed.description || `Document categorized as ${validatedCategory}.`,
-      tags: Array.isArray(parsed.tags) ? parsed.tags.map((t) => t.toLowerCase()) : ['document'],
-      category: validatedCategory,
-      confidence: parsed.confidence || '88%',
-      reasoning: parsed.reasoning || 'Categorized based on document content analysis.'
-    };
-  } catch (error) {
-    console.warn('OpenRouter API call failed or timed out:', error.message);
-    console.log('Falling back to local heuristic analysis.');
-    return generateHeuristicAnalysis(text, fileName);
   }
+
+  console.warn('All OpenRouter models failed or rate-limited. Falling back to local heuristic analysis.');
+  return generateHeuristicAnalysis(text, fileName);
 };
 
 module.exports = {
