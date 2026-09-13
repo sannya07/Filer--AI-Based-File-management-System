@@ -4,12 +4,16 @@ const {
   createShareLink,
   getSharedFile,
   getFileShareLinks,
-  revokeShareLink
+  revokeShareLink,
+  downloadSharedFile,
+  previewSharedFile
 } = require('../controllers/shareController');
 const { protect } = require('../middleware/authMiddleware');
 
-// Public route to view shared document (No login required)
+// Public routes for viewing and downloading shared documents
 router.get('/:token', getSharedFile);
+router.get('/:token/download', downloadSharedFile);
+router.get('/:token/preview', previewSharedFile);
 
 // Protected routes (Owner operations)
 router.post('/create', protect, createShareLink);

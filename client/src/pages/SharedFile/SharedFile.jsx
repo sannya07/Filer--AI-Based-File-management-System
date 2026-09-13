@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import shareService from '../../services/shareService';
 import { formatFileSize } from '../../utils/hashUtil';
 import { triggerDownload } from '../../utils/downloadUtil';
+import config from '../../config/app.config';
 import ThemeToggle from '../../components/ThemeToggle/ThemeToggle';
 import {
   FileText,
@@ -34,7 +35,8 @@ const SharedFile = () => {
     if (!file?.cloudinaryUrl || isDownloading) return;
     try {
       setIsDownloading(true);
-      await triggerDownload(file.cloudinaryUrl, file.fileName);
+      const targetUrl = `${config.apiUrl}/share/${token}/download`;
+      await triggerDownload(targetUrl, file.fileName);
     } finally {
       setIsDownloading(false);
     }
@@ -250,7 +252,7 @@ const SharedFile = () => {
               {/* Action Buttons */}
               <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 pt-6 dark:border-slate-800">
                 <a
-                  href={file.cloudinaryUrl}
+                  href={`${config.apiUrl}/share/${token}/preview`}
                   target="_blank"
                   rel="noopener noreferrer"
                   id="btn-public-open-preview"

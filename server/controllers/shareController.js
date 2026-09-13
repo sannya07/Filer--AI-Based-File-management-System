@@ -1,6 +1,22 @@
 const crypto = require('crypto');
+const path = require('path');
+const axios = require('axios');
 const ShareLink = require('../models/ShareLink');
 const FileModel = require('../models/File');
+
+const MIME_TYPES = {
+  '.pdf': 'application/pdf',
+  '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  '.doc': 'application/msword',
+  '.txt': 'text/plain',
+  '.csv': 'text/csv',
+  '.ppt': 'application/vnd.ms-powerpoint',
+  '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  '.zip': 'application/zip',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg'
+};
 
 /**
  * @desc    Generate a new secure shareable link for a file
@@ -207,9 +223,127 @@ const revokeShareLink = async (req, res, next) => {
   }
 };
 
+/**
+ * @desc    Directly download a shared document with guaranteed original filename and MIME type
+ * @route   GET /api/share/:token/download
+ * @access  Public
+ */
+const downloadSharedFile = async (req, res, next) => {
+  try {
+    const { token } = req.params;
+
+    const shareLink = await ShareLink.findOne({ token });
+    if (!shareLink) {
+      return res.status(404).json({ success: false, message: 'Share link not found.' });
+    }
+
+    if (!shareLink.isActive) {
+      return res.status(403).json({ success: false, isRevoked: true, message: 'This link has been revoked by the owner.' });
+    }
+
+    if (shareLink.expiresAt && new Date(shareLink.expiresAt) < new Date()) {
+      return res.status(410).json({ success: false, isExpired: true, message: 'Link Expired' });
+    }
+
+    if (shareLink.viewOnly) {
+      return res.status(403).json({ success: false, message: 'Download is disabled for this view-only share link.' });
+    }
+
+    const file = await FileModel.findById(shareLink.fileId);
+    if (!file || !file.cloudinaryUrl) {
+      return res.status(404).json({ success: false, message: 'File no longer exists.' });
+    }
+
+    // Increment access stats
+    shareLink.accessCount += 1;
+    await shareLink.save();
+
+    file.accessCount += 1;
+    file.lastAccessed = new Date();
+    await file.save();
+
+    // Determine correct content type & file extension
+    const ext = path.extname(file.fileName || '').toLowerCase();
+    const contentType = MIME_TYPES[ext] || 'application/octet-stream';
+    const fileName = file.fileName || 'document';
+
+    // Stream directly from storage
+    const response = await axios({
+      method: 'GET',
+      url: file.cloudinaryUrl,
+      responseType: 'stream'
+    });
+
+    res.setHeader('Content-Type', contentType);
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="${encodeURIComponent(fileName)}"; filename*=UTF-8''${encodeURIComponent(fileName)}`
+    );
+
+    if (response.headers['content-length']) {
+      res.setHeader('Content-Length', response.headers['content-length']);
+    }
+
+    response.data.pipe(res);
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Directly preview a shared document inline in the browser
+ * @route   GET /api/share/:token/preview
+ * @access  Public
+ */
+const previewSharedFile = async (req, res, next) => {
+  try {
+    const { token } = req.params;
+
+    const shareLink = await ShareLink.findOne({ token });
+    if (!shareLink) {
+      return res.status(404).json({ success: false, message: 'Share link not found.' });
+    }
+
+    if (!shareLink.isActive) {
+      return res.status(403).json({ success: false, isRevoked: true, message: 'This link has been revoked by the owner.' });
+    }
+
+    if (shareLink.expiresAt && new Date(shareLink.expiresAt) < new Date()) {
+      return res.status(410).json({ success: false, isExpired: true, message: 'Link Expired' });
+    }
+
+    const file = await FileModel.findById(shareLink.fileId);
+    if (!file || !file.cloudinaryUrl) {
+      return res.status(404).json({ success: false, message: 'File no longer exists.' });
+    }
+
+    const ext = path.extname(file.fileName || '').toLowerCase();
+    const contentType = MIME_TYPES[ext] || 'application/octet-stream';
+    const fileName = file.fileName || 'document';
+
+    const response = await axios({
+      method: 'GET',
+      url: file.cloudinaryUrl,
+      responseType: 'stream'
+    });
+
+    res.setHeader('Content-Type', contentType);
+    res.setHeader(
+      'Content-Disposition',
+      `inline; filename="${encodeURIComponent(fileName)}"; filename*=UTF-8''${encodeURIComponent(fileName)}`
+    );
+
+    response.data.pipe(res);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createShareLink,
   getSharedFile,
   getFileShareLinks,
-  revokeShareLink
+  revokeShareLink,
+  downloadSharedFile,
+  previewSharedFile
 };

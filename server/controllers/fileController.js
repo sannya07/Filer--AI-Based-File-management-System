@@ -5,6 +5,21 @@ const { saveLocalBuffer, getFileBuffer } = require('../services/fileStorageServi
 const { answerFileQuestion } = require('../services/qaService');
 const { getTopImportantFiles } = require('../services/priorityQueueService');
 const path = require('path');
+const axios = require('axios');
+
+const MIME_TYPES = {
+  '.pdf': 'application/pdf',
+  '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  '.doc': 'application/msword',
+  '.txt': 'text/plain',
+  '.csv': 'text/csv',
+  '.ppt': 'application/vnd.ms-powerpoint',
+  '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  '.zip': 'application/zip',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg'
+};
 
 /**
  * @desc    Check if a file with the given SHA-256 hash already exists for the user
@@ -74,9 +89,13 @@ const uploadFile = async (req, res, next) => {
     // 2. Upload file buffer to Cloudinary
     const ext = path.extname(originalname).toLowerCase();
     const resourceType = ['.png', '.jpg', '.jpeg'].includes(ext) ? 'image' : 'raw';
+    const cleanBaseName = path.parse(originalname).name.replace(/[^a-zA-Z0-9_-]/g, '_') || 'file';
+    const uniquePublicId = `${cleanBaseName}_${Date.now().toString(36)}${ext}`;
 
     const cloudinaryResult = await uploadBuffer(buffer, {
       folder: `filer_ai/user_${req.user._id}`,
+      public_id: uniquePublicId,
+      fileName: originalname,
       resourceType
     });
 
@@ -445,6 +464,96 @@ const renameFile = async (req, res, next) => {
   }
 };
 
+/**
+ * @desc    Directly download a user file with guaranteed original filename and MIME type
+ * @route   GET /api/files/:id/download
+ * @access  Private
+ */
+const downloadFile = async (req, res, next) => {
+  try {
+    const file = await File.findOne({
+      _id: req.params.id,
+      ownerId: req.user._id
+    });
+
+    if (!file || !file.cloudinaryUrl) {
+      return res.status(404).json({
+        success: false,
+        message: 'File not found.'
+      });
+    }
+
+    file.accessCount += 1;
+    file.lastAccessed = new Date();
+    await file.save();
+
+    const ext = path.extname(file.fileName || '').toLowerCase();
+    const contentType = MIME_TYPES[ext] || 'application/octet-stream';
+    const fileName = file.fileName || 'document';
+
+    const response = await axios({
+      method: 'GET',
+      url: file.cloudinaryUrl,
+      responseType: 'stream'
+    });
+
+    res.setHeader('Content-Type', contentType);
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="${encodeURIComponent(fileName)}"; filename*=UTF-8''${encodeURIComponent(fileName)}`
+    );
+
+    if (response.headers['content-length']) {
+      res.setHeader('Content-Length', response.headers['content-length']);
+    }
+
+    response.data.pipe(res);
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Directly preview a user file inline in the browser
+ * @route   GET /api/files/:id/preview
+ * @access  Private
+ */
+const previewFile = async (req, res, next) => {
+  try {
+    const file = await File.findOne({
+      _id: req.params.id,
+      ownerId: req.user._id
+    });
+
+    if (!file || !file.cloudinaryUrl) {
+      return res.status(404).json({
+        success: false,
+        message: 'File not found.'
+      });
+    }
+
+    const ext = path.extname(file.fileName || '').toLowerCase();
+    const contentType = MIME_TYPES[ext] || 'application/octet-stream';
+    const fileName = file.fileName || 'document';
+
+    const response = await axios({
+      method: 'GET',
+      url: file.cloudinaryUrl,
+      responseType: 'stream'
+    });
+
+    res.setHeader('Content-Type', contentType);
+    res.setHeader(
+      'Content-Disposition',
+      `inline; filename="${encodeURIComponent(fileName)}"; filename*=UTF-8''${encodeURIComponent(fileName)}`
+    );
+
+    response.data.pipe(res);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   checkDuplicate,
   uploadFile,
@@ -455,5 +564,7 @@ module.exports = {
   getImportantFiles,
   togglePinFile,
   recordFileAccess,
-  renameFile
+  renameFile,
+  downloadFile,
+  previewFile
 };
