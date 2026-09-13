@@ -134,16 +134,16 @@ const AskFileDialog = ({ isOpen, onClose, file }) => {
         className="relative flex h-[85vh] max-h-[780px] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-gray-200/80 bg-white shadow-2xl transition-all dark:border-slate-800 dark:bg-slate-900"
       >
         {/* Top Header */}
-        <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4 dark:border-slate-800">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-tr from-indigo-500 to-indigo-600 text-white shadow-md shadow-indigo-500/20">
-              <Sparkles className="h-5 w-5" />
+        <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3 sm:px-6 sm:py-4 dark:border-slate-800">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-indigo-500 to-indigo-600 text-white shadow-md shadow-indigo-500/20">
+              <Sparkles className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 sm:gap-2">
                 <h2
                   id="ask-file-title"
-                  className="max-w-[320px] truncate text-base font-bold text-gray-900 sm:max-w-md dark:text-white"
+                  className="max-w-[140px] xs:max-w-[200px] sm:max-w-md truncate text-sm sm:text-base font-bold text-gray-900 dark:text-white"
                   title={file.fileName}
                 >
                   {file.fileName}
@@ -189,7 +189,7 @@ const AskFileDialog = ({ isOpen, onClose, file }) => {
         </div>
 
         {/* Message Thread Scroll Area */}
-        <div className="flex-1 space-y-4 overflow-y-auto p-6">
+        <div className="flex-1 space-y-4 overflow-y-auto p-4 sm:p-6">
           {/* Welcome Card & Summary */}
           {messages.length === 0 && (
             <div className="rounded-2xl border border-indigo-100 bg-indigo-50/50 p-5 dark:border-indigo-950 dark:bg-slate-800/60">
@@ -357,7 +357,7 @@ const AskFileDialog = ({ isOpen, onClose, file }) => {
         {/* Input Bar Form */}
         <form
           onSubmit={handleFormSubmit}
-          className="border-t border-gray-100 bg-gray-50/50 p-4 dark:border-slate-800 dark:bg-slate-900/80"
+          className="border-t border-gray-100 bg-gray-50/50 p-3 sm:p-4 dark:border-slate-800 dark:bg-slate-900/80"
         >
           <div className="flex items-center gap-2">
             <input

@@ -262,65 +262,65 @@ const Dashboard = () => {
         </div>
 
         {/* Quick Stats Grid */}
-        <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+          <div className="rounded-2xl border border-gray-200/80 bg-white p-3.5 sm:p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+              <span className="text-[11px] sm:text-xs font-medium text-gray-500 dark:text-gray-400">
                 Total Files
               </span>
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-400">
-                <FileText className="h-4 w-4" />
+              <div className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-400">
+                <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               </div>
             </div>
-            <p id="stat-total-files" className="mt-3 text-2xl font-bold text-gray-900 dark:text-white">
+            <p id="stat-total-files" className="mt-2 sm:mt-3 text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
               {totalFilesCount}
             </p>
-            <p className="mt-1 text-[11px] text-gray-400">Stored in your workspace</p>
+            <p className="mt-0.5 sm:mt-1 text-[10px] sm:text-[11px] text-gray-400">Stored in workspace</p>
           </div>
 
-          <div className="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="rounded-2xl border border-gray-200/80 bg-white p-3.5 sm:p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+              <span className="text-[11px] sm:text-xs font-medium text-gray-500 dark:text-gray-400">
                 Storage Used
               </span>
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-50 text-purple-600 dark:bg-purple-950 dark:text-purple-400">
-                <HardDrive className="h-4 w-4" />
+              <div className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg bg-purple-50 text-purple-600 dark:bg-purple-950 dark:text-purple-400">
+                <HardDrive className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               </div>
             </div>
-            <p id="stat-storage-used" className="mt-3 text-2xl font-bold text-gray-900 dark:text-white">
+            <p id="stat-storage-used" className="mt-2 sm:mt-3 text-xl sm:text-2xl font-bold text-gray-900 dark:text-white truncate">
               {formatFileSize(totalStorageBytes)}
             </p>
-            <p className="mt-1 text-[11px] text-gray-400">Active cloud capacity</p>
+            <p className="mt-0.5 sm:mt-1 text-[10px] sm:text-[11px] text-gray-400">Active cloud space</p>
           </div>
 
-          <div className="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="rounded-2xl border border-gray-200/80 bg-white p-3.5 sm:p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+              <span className="text-[11px] sm:text-xs font-medium text-gray-500 dark:text-gray-400">
                 AI Ready
               </span>
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400">
-                <Sparkles className="h-4 w-4" />
+              <div className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400">
+                <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               </div>
             </div>
-            <p className="mt-3 text-2xl font-bold text-gray-900 dark:text-white">
+            <p className="mt-2 sm:mt-3 text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
               {totalFilesCount}
             </p>
-            <p className="mt-1 text-[11px] text-gray-400">With AI intelligence layer</p>
+            <p className="mt-0.5 sm:mt-1 text-[10px] sm:text-[11px] text-gray-400">With AI intelligence</p>
           </div>
 
-          <div className="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="rounded-2xl border border-gray-200/80 bg-white p-3.5 sm:p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                Root Categories
+              <span className="text-[11px] sm:text-xs font-medium text-gray-500 dark:text-gray-400">
+                Categories
               </span>
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50 text-amber-600 dark:bg-amber-950 dark:text-amber-400">
-                <FolderTree className="h-4 w-4" />
+              <div className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg bg-amber-50 text-amber-600 dark:bg-amber-950 dark:text-amber-400">
+                <FolderTree className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               </div>
             </div>
-            <p id="stat-category-count" className="mt-3 text-2xl font-bold text-gray-900 dark:text-white">
+            <p id="stat-category-count" className="mt-2 sm:mt-3 text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
               {categoryTree.length}
             </p>
-            <p className="mt-1 text-[11px] text-gray-400">Hierarchy tree DSA</p>
+            <p className="mt-0.5 sm:mt-1 text-[10px] sm:text-[11px] text-gray-400">Hierarchy tree DSA</p>
           </div>
         </div>
 
@@ -355,7 +355,7 @@ const Dashboard = () => {
             {/* Top Toolbar: Breadcrumbs & Search */}
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-gray-200/80 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
               {/* Breadcrumbs */}
-              <div id="breadcrumbs-nav" className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+              <div id="breadcrumbs-nav" className="flex flex-wrap items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
                 <button
                   onClick={() => {
                     setSelectedCategory('All');

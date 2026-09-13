@@ -363,8 +363,8 @@ const FileCard = ({ file, onDelete, onMove, onTogglePin, onRename, categoryTree 
             </div>
           </div>
         ) : (
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-0.5 sm:gap-1">
+          <div className="flex flex-wrap items-center justify-between gap-1">
+            <div className="flex flex-wrap items-center gap-0.5 sm:gap-1">
               {/* Open / View */}
               <a
                 href={file.cloudinaryUrl}

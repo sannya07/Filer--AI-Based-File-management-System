@@ -241,7 +241,7 @@ const SharedFile = () => {
             </div>
 
             {/* Document Body */}
-            <div className="space-y-6 p-6 sm:p-8">
+            <div className="space-y-6 p-4 sm:p-8">
               {/* AI Summary Banner */}
               {file.summary && (
                 <div className="rounded-2xl border border-indigo-100 bg-indigo-50/70 p-4.5 dark:border-indigo-900/40 dark:bg-indigo-950/30">
@@ -264,18 +264,18 @@ const SharedFile = () => {
               {/* In-Page Document Viewer */}
               <div className="rounded-2xl border border-slate-200 bg-slate-50/50 overflow-hidden dark:border-slate-800 dark:bg-slate-950/50">
                 {/* Viewer Top Bar */}
-                <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3 bg-white/70 dark:border-slate-800 dark:bg-slate-900/70 backdrop-blur-sm">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 border-b border-slate-200 px-4 py-3 bg-white/70 dark:border-slate-800 dark:bg-slate-900/70 backdrop-blur-sm">
                   <div className="flex items-center gap-2">
-                    <BookOpen className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                    <BookOpen className="h-4 w-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
                     <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
                       Document Content Viewer
                     </span>
-                    <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500">
+                    <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 hidden xs:inline">
                       (No download required)
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     {contentData?.contentHtml && (
                       <div className="flex rounded-lg border border-slate-200 bg-slate-100 p-0.5 text-[11px] font-semibold dark:border-slate-700 dark:bg-slate-800">
                         <button

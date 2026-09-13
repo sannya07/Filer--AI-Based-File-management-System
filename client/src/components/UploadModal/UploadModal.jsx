@@ -168,7 +168,7 @@ const UploadModal = ({ isOpen, onClose, onUploadSuccess }) => {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
       <div
         id="upload-modal-container"
-        className="w-full max-w-lg overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-2xl transition-all dark:border-slate-800 dark:bg-slate-900"
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl border border-gray-100 bg-white shadow-2xl transition-all dark:border-slate-800 dark:bg-slate-900"
       >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3.5 sm:px-6 sm:py-4 dark:border-slate-800">
@@ -264,7 +264,7 @@ const UploadModal = ({ isOpen, onClose, onUploadSuccess }) => {
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-400">
                     <FileText className="h-5 w-5" />
                   </div>
-                  <div className="max-w-xs truncate">
+                  <div className="max-w-[170px] sm:max-w-xs truncate">
                     <p className="truncate text-sm font-bold text-gray-900 dark:text-white">
                       {file.name}
                     </p>

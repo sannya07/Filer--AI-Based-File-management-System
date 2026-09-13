@@ -62,24 +62,24 @@ const AIReviewCard = ({ file, aiData, onAccept, onReject, isUploading }) => {
         className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl border border-gray-100 bg-white shadow-2xl transition-all dark:border-slate-800 dark:bg-slate-900"
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4 dark:border-slate-800">
+        <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3.5 sm:px-6 sm:py-4 dark:border-slate-800">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/25">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/25">
               <Sparkles className="h-5 w-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-base font-bold text-gray-900 dark:text-white">
+                <h2 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white">
                   Human-in-the-Loop AI Review
                 </h2>
                 <span
                   id="ai-confidence-badge"
-                  className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300"
+                  className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] sm:text-xs font-semibold text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300"
                 >
                   {aiData.confidence || '90%'} Match
                 </span>
               </div>
-              <p className="text-xs text-gray-500">
+              <p className="text-[11px] sm:text-xs text-gray-500">
                 Review and modify AI suggestions before permanent storage
               </p>
             </div>
@@ -95,7 +95,7 @@ const AIReviewCard = ({ file, aiData, onAccept, onReject, isUploading }) => {
           </button>
         </div>
 
-        <div className="space-y-5 p-6">
+        <div className="space-y-4 p-4 sm:space-y-5 sm:p-6">
           {/* File Snapshot Banner */}
           <div className="flex items-center justify-between rounded-2xl border border-gray-200/80 bg-gray-50/70 p-3.5 dark:border-slate-800 dark:bg-slate-800/50">
             <div className="flex items-center gap-3">
@@ -235,13 +235,13 @@ const AIReviewCard = ({ file, aiData, onAccept, onReject, isUploading }) => {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center justify-between border-t border-gray-100 pt-4 dark:border-slate-800">
+          <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-2.5 border-t border-gray-100 pt-4 dark:border-slate-800">
             <button
               id="btn-reject-ai-review"
               type="button"
               onClick={onReject}
               disabled={isUploading}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 px-4 py-2.5 text-xs font-semibold text-gray-600 transition hover:bg-red-50 hover:text-red-600 hover:border-red-200 disabled:opacity-50 dark:border-slate-700 dark:text-gray-300 dark:hover:bg-red-950/30 dark:hover:text-red-400"
+              className="inline-flex w-full sm:w-auto items-center justify-center gap-1.5 rounded-xl border border-gray-200 px-4 py-2.5 text-xs font-semibold text-gray-600 transition hover:bg-red-50 hover:text-red-600 hover:border-red-200 disabled:opacity-50 dark:border-slate-700 dark:text-gray-300 dark:hover:bg-red-950/30 dark:hover:text-red-400"
             >
               <Trash2 className="h-4 w-4" />
               <span>Discard & Cancel</span>
@@ -252,7 +252,7 @@ const AIReviewCard = ({ file, aiData, onAccept, onReject, isUploading }) => {
               type="button"
               onClick={handleAccept}
               disabled={isUploading}
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-2.5 text-xs font-semibold text-white shadow-md shadow-indigo-600/25 transition hover:from-indigo-500 hover:to-purple-500 disabled:opacity-50"
+              className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-2.5 text-xs font-semibold text-white shadow-md shadow-indigo-600/25 transition hover:from-indigo-500 hover:to-purple-500 disabled:opacity-50"
             >
               {isUploading ? (
                 <>

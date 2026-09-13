@@ -157,7 +157,7 @@ const CategoryTree = ({
       </div>
 
       {/* Tree View */}
-      <div className="mt-3 space-y-1 overflow-y-auto">
+      <div className="mt-3 space-y-1 max-h-64 sm:max-h-80 lg:max-h-[calc(100vh-14rem)] overflow-y-auto pr-1">
         {/* 'All Files' Root Option */}
         <div
           id="cat-item-all"
@@ -431,7 +431,7 @@ const CategoryTree = ({
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
             <div
               id="add-category-modal"
-              className="w-full max-w-sm rounded-2xl border border-gray-100 bg-white p-5 shadow-2xl dark:border-slate-800 dark:bg-slate-900"
+              className="w-full max-w-sm max-h-[90vh] overflow-y-auto rounded-2xl border border-gray-100 bg-white p-5 shadow-2xl dark:border-slate-800 dark:bg-slate-900"
             >
               <div className="flex items-center justify-between border-b border-gray-100 pb-3 dark:border-slate-800">
                 <h3 className="text-sm font-bold text-gray-900 dark:text-white">
